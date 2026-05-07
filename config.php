@@ -1,17 +1,16 @@
 <?php
-$host = 'localhost';
+$host = '127.0.0.1';
 $dbname = 'openarena';
-$user = 'openarena';
-$pass = 'OaPassword123!';
-
+$user = 'openarena_user';
+$pass = 'OpenArena123!';
 try {
-    $dsn = "mysql:host={$host};dbname={$dbname};charset=utf8";
-    $pdo = new PDO($dsn, $user, $pass, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-    ]);
-} catch(PDOException $e) {
-    http_response_code(500);
-    die(json_encode(['error' => $e->getMessage()]));
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die(json_encode([
+        'success' => false,
+        'message' => 'Erreur connexion BDD',
+        'debug' => $e->getMessage()
+    ]));
 }
 ?>
