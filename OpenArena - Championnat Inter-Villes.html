@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    <link rel="icon" href="data:,">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OpenArena - Championnat Inter-Villes</title>
@@ -490,6 +491,52 @@ tr:hover{background:#1f1f2e;}
 </section>
 </div>
 
+<!-- PAGE TOUCHES -->
+<div class="page" id="page-touches">
+<section>
+    <h2>⌨️ Configuration des touches</h2>
+
+    <div class="card">
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>⬆️ Avancer</label>
+                <select id="bindAvancer"></select>
+            </div>
+
+            <div class="form-group">
+                <label>⬇️ Reculer</label>
+                <select id="bindReculer"></select>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>⬅️ Gauche</label>
+                <select id="bindGauche"></select>
+            </div>
+
+            <div class="form-group">
+                <label>➡️ Droite</label>
+                <select id="bindDroite"></select>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+            <h3>🎮 Touches fixes</h3>
+
+            <p>🦘 Sauter : <strong>SPACE</strong></p>
+            <p>🔫 Tirer : <strong>CLICK GAUCHE</strong></p>
+            <p>🎯 Viser : <strong>CLICK DROIT</strong></p>
+        </div>
+
+        <button class="btn-primary" onclick="saveKeybinds()" style="margin-top:20px;">
+            💾 Sauvegarder
+        </button>
+
+    </div>
+</section>
+</div>
 <!-- PAGE PROFIL -->
 <div class="page" id="page-profil">
 <section>
@@ -505,8 +552,8 @@ tr:hover{background:#1f1f2e;}
     <p>Paris | Dieppe | Rouen | Lille | Marseille</p>
 </footer>
 
-<script src="db.js"></script>
-<script src="app.js"></script>
+<script src="db.js?v=2"></script>
+<script src="app.js?v=2"></script>
 <script>
 document.addEventListener('DOMContentLoaded', init);
 </script>
