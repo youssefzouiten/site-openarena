@@ -1,0 +1,264 @@
+async function handleRegister(e) {
+    e.preventDefault();
+    const a = document.getElementById('registerAlert');
+    const pseudo = document.getElementById('regPseudo').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const password2 = document.getElementById('regPasswordConfirm').value;
+    const ville = document.getElementById('regVille').value;
+    if(password !== password2) {
+        a.innerHTML = '<div class="alert alert-error">❌ MDP ne correspondent pas.</div>';
+        return false;
+    }
+    const res = await API.register({pseudo, email, password, ville});
+    if(res.success) {
+        currentUser = res.user;
+        closeModal('modalRegister');
+        updateNav();
+        updateHeroButtons();
+        showToast('✅ Bienvenue ' + pseudo + ' !');
+        navigateTo('profil');
+    } else {
+        a.innerHTML = '<div class="alert alert-error">❌ ' + res.message + '</div>';
+    }
+    return false;
+}
+
+async function handleLogin(e) {
+    e.preventDefault();
+    const a = document.getElementById('loginAlert');
+    const pseudo = document.getElementById('loginPseudo').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const res = await API.login({pseudo, password});
+    if(res.success) {
+        currentUser = res.user;
+        closeModal('modalLogin');
+        updateNav();
+        updateHeroButtons();
+        showToast('✅ Bon retour ' + pseudo + ' !');
+        navigateTo('profil');
+    } else {
+        a.innerHTML = '<div class="alert alert-error">❌ ' + res.message + '</div>';
+    }
+    return false;
+}
+
+async function handleLogout() {
+    await API.logout();
+    currentUser = null;
+    updateNav();
+    updateHeroButtons();
+    showToast('👋 Déconnecté !');
+    navigateTo('accueil');
+}
+
+async function loadClassement() {
+    const res = await API.getJoueurs();
+    if(!res.success) return;
+    const users = res.joueurs;
+    const body = document.getElementById('classementBody');
+    if(users.length === 0) {
+        body.innerHTML = '<tr><td colspan="6" style="color:#666;">Aucun joueur.</td></tr>';
+    } else {
+        body.innerHTML = users.map((u, i) => {
+            const pos = i + 1;
+            const medal = pos===1?'🥇':pos===2?'🥈':pos===3?'🥉':pos;
+            const isMe = currentUser && u.pseudo === currentUser.pseudo;
+            const kd = u.deaths > 0 ? (u.kills/u.deaths).toFixed(2) : (u.kills||0).toFixed(2);
+            return '<tr '+(isMe?'style="background:#1f1f35;"':'')+'>'+
+                '<td>'+medal+'</td>'+
+                '<td style="color:#ff6b35;font-weight:700;">'+esc(u.pseudo)+(isMe?' ⭐':'')+'</td>'+
+                '<td>'+u.ville+'</td>'+
+                '<td style="color:#4ecdc4;">'+(u.kills||0)+'</td>'+
+                '<td style="color:#ffd700;">'+kd+'</td>'+
+                '<td><strong>'+(u.score||0)+'</strong></td></tr>';
+        }).join('');
+    }
+    const villes = ['Paris','Dieppe','Rouen','Lille','Marseille'];
+    const icons = {Paris:'🗼',Dieppe:'⚓',Rouen:'🏰',Lille:'🏭',Marseille:'🌊'};
+    const vs = villes.map(v => ({
+        nom: v,
+        joueurs: users.filter(u => u.ville===v).length,
+        score: users.filter(u => u.ville===v).reduce((s,u) => s+(u.score||0), 0)
+    })).sort((a,b) => b.score-a.score);
+    document.getElementById('classementVillesBody').innerHTML = vs.map((v,i) =>
+        '<tr><td>'+(i+1)+'</td><td style="color:#ff6b35;font-weight:700;">'+(icons[v.nom]||'')+' '+v.nom+'</td><td>'+v.joueurs+'</td><td><strong>'+v.score+'</strong></td></tr>'
+    ).join('');
+}
+
+async function afficherJoueurs() {
+    const res = await API.getJoueurs();
+    if(!res.success) return;
+    const search = (document.getElementById('joueursSearch')?.value||'').toLowerCase();
+    const vf = document.getElementById('joueursFilterVille')?.value||'all';
+    const filtered = res.joueurs.filter(u =>
+        u.pseudo.toLowerCase().includes(search) && (vf==='all'||u.ville===vf)
+    );
+    const body = document.getElementById('joueursBody');
+    if(filtered.length === 0) {
+        body.innerHTML = '<tr><td colspan="5" style="color:#666;">Aucun joueur.</td></tr>';
+        return;
+    }
+    body.innerHTML = filtered.map(u => {
+        const isMe = currentUser && u.pseudo === currentUser.pseudo;
+        return '<tr '+(isMe?'style="background:#1f1f35;"':'')+'>'+
+            '<td style="color:#ff6b35;font-weight:700;">'+esc(u.pseudo)+(isMe?' ⭐':'')+'</td>'+
+            '<td>'+u.ville+'</td>'+
+            '<td>'+(u.score||0)+'</td>'+
+            '<td>'+(u.matchs||0)+'</td>'+
+            '<td style="color:#666;">'+u.createdAt+'</td></tr>';
+    }).join('');
+}
+
+async function afficherRDV() {
+    const res = await API.getRDV();
+    if(!res.success) return;
+    const container = document.getElementById('rdvList');
+    const search = (document.getElementById('rdvSearch')?.value||'').toLowerCase();
+    const mf = document.getElementById('rdvFilterMode')?.value||'all';
+    const filtered = res.rdvs.filter(r =>
+        (r.pseudo.toLowerCase().includes(search)||r.message.toLowerCase().includes(search)) &&
+        (mf==='all'||r.mode===mf)
+    );
+    document.getElementById('rdvCounter').textContent = filtered.length + ' rendez-vous';
+    if(filtered.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Aucun rendez-vous trouvé.</p></div>';
+        return;
+    }
+    container.innerHTML = filtered.map(rdv => {
+        const dateObj = new Date(rdv.date+'T'+rdv.time);
+        const df = dateObj.toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+        const isPast = dateObj < new Date();
+        const isOwner = currentUser && rdv.pseudo === currentUser.pseudo;
+        const isAdmin = currentUser && currentUser.role === 'admin';
+        return '<div class="rdv-item" style="'+(isPast?'border-left-color:#666;':'')+'">'+
+            '<div class="rdv-header">'+
+            '<span class="rdv-pseudo">🎮 '+esc(rdv.pseudo)+'</span>'+
+            '<span class="rdv-date-time">📅 '+df+' à '+rdv.time+(isPast?' <span style="color:#ff4444;font-size:0.8rem;">(passé)</span>':'')+'</span>'+
+            '</div>'+
+            '<span class="rdv-mode">🎯 '+rdv.mode+'</span>'+
+            '<span class="rdv-mode">🏙️ '+(rdv.ville||'?')+'</span>'+
+            '<div class="rdv-message">'+esc(rdv.message)+'</div>'+
+            ((isOwner||isAdmin)?'<div class="rdv-actions"><button class="btn-danger" onclick="deleteRDV('+rdv.id+')">🗑️ Supprimer</button></div>':'')+
+            '</div>';
+    }).join('');
+}
+
+async function publierRDV() {
+    if(!currentUser) { showToast('🔒 Connecte-toi !', true); openModal('modalLogin'); return; }
+    const mode = document.getElementById('rdvMode').value;
+    const date = document.getElementById('rdvDate').value;
+    const time = document.getElementById('rdvTime').value;
+    const message = document.getElementById('rdvMessage').value.trim();
+    if(!date) { showToast('⚠️ Choisis une date !', true); return; }
+    if(!time) { showToast('⚠️ Choisis une heure !', true); return; }
+    if(!message) { showToast('⚠️ Écris un message !', true); return; }
+    const res = await API.addRDV({mode, date, time, message});
+    if(res.success) {
+        showToast('✅ RDV publié !');
+        resetRdvForm();
+        afficherRDV();
+    } else {
+        showToast('❌ Erreur : ' + res.message, true);
+    }
+}
+
+async function deleteRDV(id) {
+    if(!currentUser) return;
+    if(!confirm('Supprimer ce RDV ?')) return;
+    const res = await API.deleteRDV(id);
+    if(res.success) { showToast('🗑️ Supprimé'); afficherRDV(); }
+    else showToast('❌ ' + res.message, true);
+}
+
+async function updateStats() {
+    const res = await API.getJoueurs();
+    if(res.success) document.getElementById('statJoueurs').textContent = res.joueurs.length;
+    const rdvRes = await API.getRDV();
+    if(rdvRes.success) document.getElementById('statRDV').textContent = rdvRes.rdvs.length;
+}
+
+async function init() {
+    const res = await API.getSession();
+    currentUser = res.user || null;
+    updateNav();
+    updateHeroButtons();
+    updateStats();
+    navigateTo('accueil');
+    const di = document.getElementById('rdvDate');
+    if(di) di.min = new Date().toISOString().split('T')[0];
+    document.getElementById('rdvMessage').addEventListener('input', function(){
+        document.getElementById('rdvCharCount').textContent = this.value.length + ' / 300';
+    });
+}
+
+function navigateTo(page){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    const t=document.getElementById('page-'+page);
+    if(t){t.classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
+    if(page==='classement')loadClassement();
+    if(page==='rdv')loadRDVPage();
+    if(page==='profil')loadProfil();
+    if(page==='joueurs')afficherJoueurs();
+}
+
+function updateNav(){
+    const n=document.getElementById('navMenu');
+    let h='<li><a onclick="navigateTo(\'accueil\')">🏠 Accueil</a></li><li><a onclick="navigateTo(\'classement\')">🏆 Classement</a></li><li><a onclick="navigateTo(\'rdv\')">📅 RDV</a></li><li><a onclick="navigateTo(\'joueurs\')">👥 Joueurs</a></li>';
+    if(currentUser){
+        h+='<li><a onclick="navigateTo(\'profil\')" class="nav-user">👤 '+currentUser.pseudo+'</a></li><li><a onclick="handleLogout()" class="nav-btn-logout">🚪 Déconnexion</a></li>';
+    }else{
+        h+='<li><a onclick="openModal(\'modalLogin\')" class="nav-btn-login">🔑 Connexion</a></li><li><a onclick="openModal(\'modalRegister\')" class="nav-btn-register">📝 Inscription</a></li>';
+    }
+    n.innerHTML=h;
+}
+
+function updateHeroButtons(){
+    const c=document.getElementById('heroBtns');
+    if(currentUser){
+        c.innerHTML='<button class="btn-primary" onclick="navigateTo(\'rdv\')">📅 Planifier</button><button class="btn-secondary" onclick="navigateTo(\'profil\')">👤 Mon profil</button>';
+    }else{
+        c.innerHTML='<button class="btn-primary" onclick="openModal(\'modalRegister\')">📝 S\'inscrire</button><button class="btn-outline" onclick="openModal(\'modalLogin\')">🔑 Se connecter</button>';
+    }
+}
+
+function openModal(id){document.getElementById(id).classList.add('active');}
+function closeModal(id){document.getElementById(id).classList.remove('active');}
+function esc(str){const d=document.createElement('div');d.textContent=str;return d.innerHTML;}
+function showToast(msg,isError=false){
+    const t=document.getElementById('toast');t.textContent=msg;
+    t.className='toast show'+(isError?' error':'');
+    setTimeout(()=>t.classList.remove('show'),3500);
+}
+function resetRdvForm(){
+    document.getElementById('rdvMode').value='Free For All';
+    document.getElementById('rdvDate').value='';
+    document.getElementById('rdvTime').value='';
+    document.getElementById('rdvMessage').value='';
+    document.getElementById('rdvCharCount').textContent='0 / 300';
+}
+function loadRDVPage(){
+    const warn=document.getElementById('rdvAuthWarn');
+    const form=document.getElementById('rdvFormContainer');
+    if(!currentUser){warn.style.display='block';form.style.opacity='0.5';form.style.pointerEvents='none';}
+    else{warn.style.display='none';form.style.opacity='1';form.style.pointerEvents='auto';document.getElementById('rdvPseudo').value=currentUser.pseudo;}
+    afficherRDV();
+}
+function loadProfil(){
+    const c=document.getElementById('profilContent');
+    if(!currentUser){c.innerHTML='<div class="alert alert-info">🔒 Connecte-toi</div>';return;}
+    c.innerHTML='<div class="profile-header"><div class="profile-avatar">'+currentUser.pseudo.charAt(0).toUpperCase()+'</div><div class="profile-info"><h3>'+currentUser.pseudo+'</h3><p>'+currentUser.email+'</p><p>'+currentUser.ville+'</p></div></div>';
+}
+function showClassTab(tab){
+    document.querySelectorAll('#classTabs .tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('[id^="classTab-"]').forEach(c=>c.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('classTab-'+tab).classList.add('active');
+}
+function switchRdvTab(tab){
+    document.querySelectorAll('#page-rdv .tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('[id^="rdvTab-"]').forEach(c=>c.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('rdvTab-'+tab).classList.add('active');
+    if(tab==='liste')afficherRDV();
+}
