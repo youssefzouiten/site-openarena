@@ -485,7 +485,72 @@ tr:hover{background:#1f1f2e;}
     </div>
 </section>
 </div>
+<<<<<<< HEAD
+<!-- PAGE TOUCHES -->
+<div class="page" id="page-touches">
+<section>
+    <h2>⌨️ Configuration des touches</h2>
 
+    <div class="card">
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>⬆️ Avancer</label>
+                <input type="text" id="bindAvancer">
+            </div>
+
+            <div class="form-group">
+                <label>⬇️ Reculer</label>
+                <input type="text" id="bindReculer">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>⬅️ Gauche</label>
+                <input type="text" id="bindGauche">
+            </div>
+
+            <div class="form-group">
+                <label>➡️ Droite</label>
+                <input type="text" id="bindDroite">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>🦘 Sauter</label>
+                <input type="text" id="bindSauter">
+            </div>
+
+            <div class="form-group">
+                <label>🔫 Tirer</label>
+                <input type="text" id="bindTirer">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>🎯 Viser</label>
+                <input type="text" id="bindViser">
+            </div>
+
+            <div class="form-group">
+                <label>🔄 Recharger</label>
+                <input type="text" id="bindReload">
+            </div>
+        </div>
+
+        <button class="btn-primary" onclick="saveKeybinds()">
+            💾 Sauvegarder
+        </button>
+
+    </div>
+</section>
+</div>
+=======
+
+>>>>>>> origin/master
 <!-- PAGE PROFIL -->
 <div class="page" id="page-profil">
 <section>
