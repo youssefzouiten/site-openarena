@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    <link rel="icon" href="data:,">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OpenArena - Championnat Inter-Villes</title>
@@ -413,6 +414,7 @@ tr:hover{background:#1f1f2e;}
     <h2>⚙️ Panel Admin</h2>
     <div id="adminAuthWarn" class="alert alert-error" style="display:none;">❌ Accès réservé aux admins !</div>
     <div id="adminContent">
+
         <!-- CONFIGURER UNE PARTIE -->
         <div class="card">
             <h3>🎮 Configurer une partie</h3>
@@ -422,10 +424,10 @@ tr:hover{background:#1f1f2e;}
                     <div class="form-group">
                         <label>🗺️ Map</label>
                         <select id="adminMap">
-                            <option value="oa_dm3">oa_dm3</option>
-                            <option value="am_lavactf">am_lavactf</option>
-                            <option value="oa_ctf1">oa_ctf1</option>
-                            <option value="oa_minia">oa_minia</option>
+                            <option value="oa_dm3">oa_dm3 — Duels</option>
+                            <option value="am_lavactf">am_lavactf — CTF avec lave</option>
+                            <option value="oa_ctf1">oa_ctf1 — CTF classique</option>
+                            <option value="oa_minia">oa_minia — TDM compact</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -459,6 +461,7 @@ tr:hover{background:#1f1f2e;}
                 </button>
             </form>
         </div>
+
         <!-- HISTORIQUE DES PARTIES -->
         <div class="card" style="margin-top:2rem;">
             <h3>📋 Historique des parties</h3>
@@ -469,6 +472,7 @@ tr:hover{background:#1f1f2e;}
                 <tbody id="partiesBody"></tbody>
             </table>
         </div>
+
         <!-- GESTION DES JOUEURS -->
         <div class="card" style="margin-top:2rem;">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
@@ -482,10 +486,11 @@ tr:hover{background:#1f1f2e;}
                 <tbody id="adminJoueursBody"></tbody>
             </table>
         </div>
+
     </div>
 </section>
 </div>
-<<<<<<< HEAD
+
 <!-- PAGE TOUCHES -->
 <div class="page" id="page-touches">
 <section>
@@ -496,61 +501,42 @@ tr:hover{background:#1f1f2e;}
         <div class="form-row">
             <div class="form-group">
                 <label>⬆️ Avancer</label>
-                <input type="text" id="bindAvancer">
+                <select id="bindAvancer"></select>
             </div>
 
             <div class="form-group">
                 <label>⬇️ Reculer</label>
-                <input type="text" id="bindReculer">
+                <select id="bindReculer"></select>
             </div>
         </div>
 
         <div class="form-row">
             <div class="form-group">
                 <label>⬅️ Gauche</label>
-                <input type="text" id="bindGauche">
+                <select id="bindGauche"></select>
             </div>
 
             <div class="form-group">
                 <label>➡️ Droite</label>
-                <input type="text" id="bindDroite">
+                <select id="bindDroite"></select>
             </div>
         </div>
 
-        <div class="form-row">
-            <div class="form-group">
-                <label>🦘 Sauter</label>
-                <input type="text" id="bindSauter">
-            </div>
+        <div class="card" style="margin-top:20px;">
+            <h3>🎮 Touches fixes</h3>
 
-            <div class="form-group">
-                <label>🔫 Tirer</label>
-                <input type="text" id="bindTirer">
-            </div>
+            <p>🦘 Sauter : <strong>SPACE</strong></p>
+            <p>🔫 Tirer : <strong>CLICK GAUCHE</strong></p>
+            <p>🎯 Viser : <strong>CLICK DROIT</strong></p>
         </div>
 
-        <div class="form-row">
-            <div class="form-group">
-                <label>🎯 Viser</label>
-                <input type="text" id="bindViser">
-            </div>
-
-            <div class="form-group">
-                <label>🔄 Recharger</label>
-                <input type="text" id="bindReload">
-            </div>
-        </div>
-
-        <button class="btn-primary" onclick="saveKeybinds()">
+        <button class="btn-primary" onclick="saveKeybinds()" style="margin-top:20px;">
             💾 Sauvegarder
         </button>
 
     </div>
 </section>
 </div>
-=======
-
->>>>>>> origin/master
 <!-- PAGE PROFIL -->
 <div class="page" id="page-profil">
 <section>
@@ -566,8 +552,8 @@ tr:hover{background:#1f1f2e;}
     <p>Paris | Dieppe | Rouen | Lille | Marseille</p>
 </footer>
 
-<script src="db.js"></script>
-<script src="app.js"></script>
+<script src="db.js?v=10"></script>
+<script src="app.js?v=10"></script>
 <script>
 document.addEventListener('DOMContentLoaded', init);
 </script>
