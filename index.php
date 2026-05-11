@@ -409,11 +409,11 @@ tr:hover{background:#1f1f2e;}
         <div class="card">
             <h3>🎮 Configurer une partie</h3>
             <div id="adminAlert"></div>
-            <form onsubmit="return lancerPartie(event)" style="margin-top:1.5rem;">
+            <form onsubmit="return lancerPartie(event)" action = "http://192.168.1.5:8000/start"style="margin-top:1.5rem;">
                 <div class="form-row">
                     <div class="form-group">
                         <label>🗺️ Map</label>
-                        <select id="adminMap">
+                        <select id="adminMap" name="adminMap">
                             <option value="oa_dm3">oa_dm3 — Duels</option>
                             <option value="am_lavactf">am_lavactf — CTF avec lave</option>
                             <option value="oa_ctf1">oa_ctf1 — CTF classique</option>
@@ -422,28 +422,28 @@ tr:hover{background:#1f1f2e;}
                     </div>
                     <div class="form-group">
                         <label>🎯 Mode de jeu</label>
-                        <select id="adminMode">
-                            <option value="Free For All">Free For All</option>
-                            <option value="Team Deathmatch">Team Deathmatch</option>
-                            <option value="Capture The Flag">Capture The Flag</option>
-                            <option value="Duel">Duel</option>
+                        <select id="adminMode" name="adminMode">
+                            <option value="0">Free For All</option>
+                            <option value="3">Team Deathmatch</option>
+                            <option value="4">Capture The Flag</option>
+                            <option value="1">Duel</option>
                         </select>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label>👥 Nombre de joueurs max</label>
-                        <input type="number" id="adminNbJoueurs" value="16" min="2" max="32">
+                        <input type="number" id="adminNbJoueurs" name="adminJoueurs"value="16" min="2" max="32">
                     </div>
                     <div class="form-group">
                         <label>⏱️ Temps (minutes)</label>
-                        <input type="number" id="adminTemps" value="15" min="1" max="60">
+                        <input type="number" id="adminTemps" name="adminTemps" value="15" min="1" max="60">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label>💀 Kills maximum</label>
-                        <input type="number" id="adminKills" value="30" min="1" max="100">
+                        <input type="number" id="adminKills" name="adminKills" value="30" min="1" max="100">
                     </div>
                 </div>
                 <button type="submit" class="btn-primary" style="width:100%;justify-content:center;margin-top:1rem;">
