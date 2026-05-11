@@ -4,7 +4,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 require_once 'config.php';
 
-$action = $_POST['action'] ?? '';
+$action = $_POST['action'] ?? $_GET['action'] ?? '';
 
 function jsonResponse($data) {
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
@@ -12,7 +12,96 @@ function jsonResponse($data) {
 }
 
 try {
-    if ($action === 'register') {
+
+    if ($action === 'login') {
+        $pseudo = trim($_POST['pseudo'] ?? '');
+        $password = $_POST['password'] ?? '';
+
+        $stmt = $pdo->prepare("SELECT * FROM joueurs WHERE pseudo = ?");
+        $stmt->execute([$pseudo]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($user && password_verify($password, $user['password'])) {
+            unset($user['password']);
+            $_SESSION['user'] = $user;
+            jsonResponse(['success' => true, 'user' => $user]);
+        }
+
+        jsonResponse(['success' => false, 'message' => 'Pseudo ou mot de passe incorrect']);
+    }
+
+    elseif ($action === 'getSession') {
+        jsonResponse(['success' => true, 'user' => $_SESSION['user'] ?? null]);
+    }
+
+    elseif ($action === 'logout') {
+        $_SESSION = [];
+        session_destroy();
+        jsonResponse(['success' => true]);
+    }
+
+    elseif ($action === 'getKeybinds') {
+        if (!isset($_SESSION['user'])) {
+            jsonResponse(['success' => false, 'message' => 'Non connecté']);
+        }
+
+        $pseudo = $_SESSION['user']['pseudo'];
+
+        $stmt = $pdo->prepare("SELECT keybinds FROM joueurs WHERE pseudo = ?");
+        $stmt->execute([$pseudo]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        $defaults = [
+            'avancer' => 'Z',
+            'reculer' => 'S',
+            'gauche' => 'Q',
+            'droite' => 'D'
+        ];
+
+        $keybinds = $defaults;
+
+        if ($row && !empty($row['keybinds'])) {
+            $decoded = json_decode($row['keybinds'], true);
+            if (is_array($decoded)) {
+                $keybinds = array_merge($defaults, $decoded);
+            }
+        }
+
+        jsonResponse(['success' => true, 'keybinds' => $keybinds]);
+    }
+
+    elseif ($action === 'saveKeybinds') {
+        if (!isset($_SESSION['user'])) {
+            jsonResponse(['success' => false, 'message' => 'Non connecté']);
+        }
+
+        $pseudo = $_SESSION['user']['pseudo'];
+
+        $keybinds = [
+            'avancer' => strtoupper(trim($_POST['avancer'] ?? 'Z')),
+            'reculer' => strtoupper(trim($_POST['reculer'] ?? 'S')),
+            'gauche' => strtoupper(trim($_POST['gauche'] ?? 'Q')),
+            'droite' => strtoupper(trim($_POST['droite'] ?? 'D'))
+        ];
+
+        if (count($keybinds) !== count(array_unique($keybinds))) {
+            jsonResponse([
+                'success' => false,
+                'message' => 'Une touche ne peut pas être utilisée deux fois'
+            ]);
+        }
+
+        $stmt = $pdo->prepare("UPDATE joueurs SET keybinds = ? WHERE pseudo = ?");
+        $stmt->execute([json_encode($keybinds, JSON_UNESCAPED_UNICODE), $pseudo]);
+
+        jsonResponse([
+            'success' => true,
+            'message' => 'Touches sauvegardées',
+            'keybinds' => $keybinds
+        ]);
+    }
+
+    elseif ($action === 'register') {
         $pseudo = trim($_POST['pseudo'] ?? '');
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
@@ -36,7 +125,10 @@ try {
 
         $hash = password_hash($password, PASSWORD_DEFAULT);
 
-        $stmt = $pdo->prepare("INSERT INTO joueurs (pseudo, email, password, ville, role) VALUES (?, ?, ?, ?, ?)");
+        $stmt = $pdo->prepare("
+            INSERT INTO joueurs (pseudo, email, password, ville, role)
+            VALUES (?, ?, ?, ?, ?)
+        ");
         $stmt->execute([$pseudo, $email, $hash, $ville, $role]);
 
         $user = [
@@ -53,35 +145,13 @@ try {
         jsonResponse(['success' => true, 'user' => $user]);
     }
 
-    elseif ($action === 'login') {
-        $pseudo = trim($_POST['pseudo'] ?? '');
-        $password = $_POST['password'] ?? '';
-
-        $stmt = $pdo->prepare("SELECT * FROM joueurs WHERE pseudo = ?");
-        $stmt->execute([$pseudo]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($user && password_verify($password, $user['password'])) {
-            unset($user['password']);
-            $_SESSION['user'] = $user;
-            jsonResponse(['success' => true, 'user' => $user]);
-        }
-
-        jsonResponse(['success' => false, 'message' => 'Pseudo ou mot de passe incorrect']);
-    }
-
-    elseif ($action === 'logout') {
-        $_SESSION = [];
-        session_destroy();
-        jsonResponse(['success' => true]);
-    }
-
-    elseif ($action === 'getSession') {
-        jsonResponse(['success' => true, 'user' => $_SESSION['user'] ?? null]);
-    }
-
     elseif ($action === 'getJoueurs') {
-        $stmt = $pdo->query("SELECT id, pseudo, email, ville, role, score, kills, deaths, matchs, createAt FROM joueurs ORDER BY score DESC, pseudo ASC");
+        $stmt = $pdo->query("
+            SELECT id, pseudo, email, ville, role, score, kills, deaths, matchs, createAt, keybinds
+            FROM joueurs
+            ORDER BY score DESC, pseudo ASC
+        ");
+
         jsonResponse(['success' => true, 'joueurs' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
     }
 
@@ -106,7 +176,10 @@ try {
             jsonResponse(['success' => false, 'message' => 'Champs RDV manquants']);
         }
 
-        $stmt = $pdo->prepare("INSERT INTO rendezvous (pseudo, ville, mode, date, time, message) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt = $pdo->prepare("
+            INSERT INTO rendezvous (pseudo, ville, mode, date, time, message)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ");
         $stmt->execute([$pseudo, $ville, $mode, $date, $time, $message]);
 
         jsonResponse(['success' => true]);
@@ -158,14 +231,23 @@ try {
         $temps = (int)($_POST['temps'] ?? 0);
         $kills = (int)($_POST['kills'] ?? 0);
 
-        $stmt = $pdo->prepare("INSERT INTO parties (map, mode_jeu, nb_joueurs, temps, kills_max, statut) VALUES (?, ?, ?, ?, ?, 'En cours')");
+        $stmt = $pdo->prepare("
+            INSERT INTO parties (map, mode_jeu, nb_joueurs, temps, kills_max, statut)
+            VALUES (?, ?, ?, ?, ?, 'En cours')
+        ");
         $stmt->execute([$map, $mode, $nbJoueurs, $temps, $kills]);
 
         jsonResponse(['success' => true, 'message' => 'Partie lancée !']);
     }
 
     elseif ($action === 'getParties') {
-        $stmt = $pdo->query("SELECT id, map, mode_jeu AS mode, nb_joueurs AS nbJoueurs, temps, kills_max AS kills, statut, createdAt FROM parties ORDER BY createdAt DESC LIMIT 20");
+        $stmt = $pdo->query("
+            SELECT id, map, mode_jeu AS mode, nb_joueurs AS nbJoueurs, temps, kills_max AS kills, statut, createdAt
+            FROM parties
+            ORDER BY createdAt DESC
+            LIMIT 20
+        ");
+
         jsonResponse(['success' => true, 'parties' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
     }
 
@@ -221,67 +303,7 @@ try {
             $stmt->execute([$ville, $role, $pseudo]);
         }
 
-        if (isset($_SESSION['user']) && $_SESSION['user']['pseudo'] === $pseudo) {
-            $_SESSION['user']['ville'] = $ville;
-            $_SESSION['user']['role'] = $role;
-        }
-
         jsonResponse(['success' => true]);
-    }
-
-    elseif ($action === 'getKeybinds') {
-        if (!isset($_SESSION['user'])) {
-            jsonResponse(['success' => false, 'message' => 'Non connecté']);
-        }
-
-        $pseudo = $_SESSION['user']['pseudo'];
-        $stmt = $pdo->prepare("SELECT keybinds FROM joueurs WHERE pseudo = ?");
-        $stmt->execute([$pseudo]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        $defaults = [
-            'avancer' => 'Z',
-            'reculer' => 'S',
-            'gauche' => 'Q',
-            'droite' => 'D',
-            'sauter' => 'SPACE',
-            'tirer' => 'MOUSE1',
-            'viser' => 'MOUSE2'
-        ];
-
-        $keybinds = $defaults;
-
-        if ($row && !empty($row['keybinds'])) {
-            $decoded = json_decode($row['keybinds'], true);
-            if (is_array($decoded)) {
-                $keybinds = array_merge($defaults, $decoded);
-            }
-        }
-
-        jsonResponse(['success' => true, 'keybinds' => $keybinds]);
-    }
-
-    elseif ($action === 'saveKeybinds') {
-        if (!isset($_SESSION['user'])) {
-            jsonResponse(['success' => false, 'message' => 'Non connecté']);
-        }
-
-        $pseudo = $_SESSION['user']['pseudo'];
-
-        $keybinds = [
-            'avancer' => strtoupper(trim($_POST['avancer'] ?? 'Z')),
-            'reculer' => strtoupper(trim($_POST['reculer'] ?? 'S')),
-            'gauche' => strtoupper(trim($_POST['gauche'] ?? 'Q')),
-            'droite' => strtoupper(trim($_POST['droite'] ?? 'D')),
-            'sauter' => strtoupper(trim($_POST['sauter'] ?? 'SPACE')),
-            'tirer' => strtoupper(trim($_POST['tirer'] ?? 'MOUSE1')),
-            'viser' => strtoupper(trim($_POST['viser'] ?? 'MOUSE2'))
-        ];
-
-        $stmt = $pdo->prepare("UPDATE joueurs SET keybinds = ? WHERE pseudo = ?");
-        $stmt->execute([json_encode($keybinds, JSON_UNESCAPED_UNICODE), $pseudo]);
-
-        jsonResponse(['success' => true, 'message' => 'Touches sauvegardées', 'keybinds' => $keybinds]);
     }
 
     else {

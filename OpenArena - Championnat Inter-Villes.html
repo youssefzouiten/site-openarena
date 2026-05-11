@@ -327,11 +327,9 @@ tr:hover{background:#1f1f2e;}
     <h2>🏆 Classement</h2>
     <div class="tabs" id="classTabs">
         <button class="tab-btn active" onclick="showClassTab('joueurs')">👤 Joueurs</button>
-        <button class="tab-btn" onclick="showClassTab('villes')">🏙️ Villes</button>
+        
     </div>
-    <div id="classTab-joueurs" class="tab-content active">
-        <table><thead><tr><th>#</th><th>Joueur</th><th>Ville</th><th>Kills</th><th>K/D</th><th>Score</th></tr></thead><tbody id="classementBody"></tbody></table>
-    </div>
+   
     <div id="classTab-villes" class="tab-content">
         <table><thead><tr><th>#</th><th>Ville</th><th>Joueurs</th><th>Score</th></tr></thead><tbody id="classementVillesBody"></tbody></table>
     </div>
@@ -497,6 +495,9 @@ tr:hover{background:#1f1f2e;}
     <h2>⌨️ Configuration des touches</h2>
 
     <div class="card">
+        <p style="color:#aaa;margin-bottom:20px;">
+            Choisis une seule touche pour chaque déplacement. Une touche ne peut pas être utilisée deux fois.
+        </p>
 
         <div class="form-row">
             <div class="form-group">
@@ -522,18 +523,9 @@ tr:hover{background:#1f1f2e;}
             </div>
         </div>
 
-        <div class="card" style="margin-top:20px;">
-            <h3>🎮 Touches fixes</h3>
-
-            <p>🦘 Sauter : <strong>SPACE</strong></p>
-            <p>🔫 Tirer : <strong>CLICK GAUCHE</strong></p>
-            <p>🎯 Viser : <strong>CLICK DROIT</strong></p>
-        </div>
-
         <button class="btn-primary" onclick="saveKeybinds()" style="margin-top:20px;">
-            💾 Sauvegarder
+            💾 Sauvegarder mes touches
         </button>
-
     </div>
 </section>
 </div>
@@ -552,8 +544,9 @@ tr:hover{background:#1f1f2e;}
     <p>Paris | Dieppe | Rouen | Lille | Marseille</p>
 </footer>
 
-<script src="db.js?v=10"></script>
-<script src="app.js?v=10"></script>
+<script src="db.js?v=40"></script>
+<script src="app.js?v=40"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', init);
 </script>
