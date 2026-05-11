@@ -327,11 +327,9 @@ tr:hover{background:#1f1f2e;}
     <h2>🏆 Classement</h2>
     <div class="tabs" id="classTabs">
         <button class="tab-btn active" onclick="showClassTab('joueurs')">👤 Joueurs</button>
-        <button class="tab-btn" onclick="showClassTab('villes')">🏙️ Villes</button>
+        
     </div>
-    <div id="classTab-joueurs" class="tab-content active">
-        <table><thead><tr><th>#</th><th>Joueur</th><th>Ville</th><th>Kills</th><th>K/D</th><th>Score</th></tr></thead><tbody id="classementBody"></tbody></table>
-    </div>
+
     <div id="classTab-villes" class="tab-content">
         <table><thead><tr><th>#</th><th>Ville</th><th>Joueurs</th><th>Score</th></tr></thead><tbody id="classementVillesBody"></tbody></table>
     </div>
@@ -372,15 +370,7 @@ tr:hover{background:#1f1f2e;}
     </div>
     <div id="rdvTab-liste" class="tab-content">
         <div class="filters">
-            <input type="text" id="rdvSearch" placeholder="🔍 Rechercher..." oninput="afficherRDV()">
-            <select id="rdvFilterMode" onchange="afficherRDV()">
-                <option value="all">Tous</option>
-                <option value="Free For All">FFA</option>
-                <option value="Team Deathmatch">TDM</option>
-                <option value="Capture The Flag">CTF</option>
-                <option value="Duel">Duel</option>
-                <option value="Autre">Autre</option>
-            </select>
+            
             <button class="btn-danger" onclick="clearAllRDV()">🗑️ Supprimer tout</button>
         </div>
         <div class="counter" id="rdvCounter">0 rendez-vous</div>
@@ -419,11 +409,11 @@ tr:hover{background:#1f1f2e;}
         <div class="card">
             <h3>🎮 Configurer une partie</h3>
             <div id="adminAlert"></div>
-            <form onsubmit="return lancerPartie(event)" style="margin-top:1.5rem;">
+            <form onsubmit="return lancerPartie(event)" action = "http://192.168.1.5:8000/start"style="margin-top:1.5rem;">
                 <div class="form-row">
                     <div class="form-group">
                         <label>🗺️ Map</label>
-                        <select id="adminMap">
+                        <select id="adminMap" name="adminMap">
                             <option value="oa_dm3">oa_dm3 — Duels</option>
                             <option value="am_lavactf">am_lavactf — CTF avec lave</option>
                             <option value="oa_ctf1">oa_ctf1 — CTF classique</option>
@@ -432,28 +422,28 @@ tr:hover{background:#1f1f2e;}
                     </div>
                     <div class="form-group">
                         <label>🎯 Mode de jeu</label>
-                        <select id="adminMode">
-                            <option value="Free For All">Free For All</option>
-                            <option value="Team Deathmatch">Team Deathmatch</option>
-                            <option value="Capture The Flag">Capture The Flag</option>
-                            <option value="Duel">Duel</option>
+                        <select id="adminMode" name="adminMode">
+                            <option value="0">Free For All</option>
+                            <option value="3">Team Deathmatch</option>
+                            <option value="4">Capture The Flag</option>
+                            <option value="1">Duel</option>
                         </select>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label>👥 Nombre de joueurs max</label>
-                        <input type="number" id="adminNbJoueurs" value="16" min="2" max="32">
+                        <input type="number" id="adminNbJoueurs" name="adminJoueurs"value="16" min="2" max="32">
                     </div>
                     <div class="form-group">
                         <label>⏱️ Temps (minutes)</label>
-                        <input type="number" id="adminTemps" value="15" min="1" max="60">
+                        <input type="number" id="adminTemps" name="adminTemps" value="15" min="1" max="60">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label>💀 Kills maximum</label>
-                        <input type="number" id="adminKills" value="30" min="1" max="100">
+                        <input type="number" id="adminKills" name="adminKills" value="30" min="1" max="100">
                     </div>
                 </div>
                 <button type="submit" class="btn-primary" style="width:100%;justify-content:center;margin-top:1rem;">
@@ -497,6 +487,9 @@ tr:hover{background:#1f1f2e;}
     <h2>⌨️ Configuration des touches</h2>
 
     <div class="card">
+        <p style="color:#aaa;margin-bottom:20px;">
+            Choisis une seule touche pour chaque déplacement. Une touche ne peut pas être utilisée deux fois.
+        </p>
 
         <div class="form-row">
             <div class="form-group">
@@ -522,18 +515,9 @@ tr:hover{background:#1f1f2e;}
             </div>
         </div>
 
-        <div class="card" style="margin-top:20px;">
-            <h3>🎮 Touches fixes</h3>
-
-            <p>🦘 Sauter : <strong>SPACE</strong></p>
-            <p>🔫 Tirer : <strong>CLICK GAUCHE</strong></p>
-            <p>🎯 Viser : <strong>CLICK DROIT</strong></p>
-        </div>
-
         <button class="btn-primary" onclick="saveKeybinds()" style="margin-top:20px;">
-            💾 Sauvegarder
+            💾 Sauvegarder mes touches
         </button>
-
     </div>
 </section>
 </div>
@@ -552,8 +536,9 @@ tr:hover{background:#1f1f2e;}
     <p>Paris | Dieppe | Rouen | Lille | Marseille</p>
 </footer>
 
-<script src="db.js?v=10"></script>
-<script src="app.js?v=10"></script>
+<script src="db.js?v=40"></script>
+<script src="app.js?v=40"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', init);
 </script>

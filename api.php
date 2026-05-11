@@ -265,10 +265,10 @@ try {
     {
 
         if (!isset($_SESSION['user'])) 
-            {
+        {
             header("HTTP/1.1 403 Forbidden");
             exit;
-            }
+        }
 
         $pseudo = $_SESSION['user']['pseudo'];
 
@@ -315,7 +315,6 @@ try {
 
         exit;
     }
-
     
     elseif ($action === 'saveKeybinds') {
         if (!isset($_SESSION['user'])) {
