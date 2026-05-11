@@ -261,6 +261,62 @@ try {
         jsonResponse(['success' => true, 'keybinds' => $keybinds]);
     }
 
+    elseif ($action === 'getCFG') 
+    {
+
+        if (!isset($_SESSION['user'])) 
+            {
+            header("HTTP/1.1 403 Forbidden");
+            exit;
+            }
+
+        $pseudo = $_SESSION['user']['pseudo'];
+
+        $stmt = $pdo->prepare("SELECT keybinds FROM joueurs WHERE pseudo = ?");
+        $stmt->execute([$pseudo]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        $defaults = [
+            'avancer' => 'Z',
+            'reculer' => 'S',
+            'gauche' => 'Q',
+            'droite' => 'D',
+            'sauter' => 'SPACE',
+            'tirer' => 'MOUSE1',
+            'viser' => 'MOUSE2'
+        ];
+
+        $keybinds = $defaults;
+
+        if ($row && !empty($row['keybinds'])) 
+        {
+
+            $decoded = json_decode($row['keybinds'], true);
+
+            if (is_array($decoded)) 
+            {
+                $keybinds = array_merge($defaults, $decoded);
+            }
+        }
+
+        header('Content-Type: text/plain; charset=utf-8');
+
+        echo "unbindall\n\n";
+
+        echo 'bind "' . $keybinds['avancer'] . "\" \"+forward\"\n";
+        echo 'bind "' . $keybinds['reculer'] . "\" \"+back\"\n";
+        echo 'bind "' . $keybinds['gauche'] . "\" \"+moveleft\"\n";
+        echo 'bind "' . $keybinds['droite'] . "\" \"+moveright\"\n";
+        echo 'bind "' . $keybinds['sauter'] . "\" \"+moveup\"\n\n";
+
+        echo 'bind "' . $keybinds['tirer'] . "\" \"+attack\"\n";
+        echo 'bind "' . $keybinds['viser'] . "\" \"+zoom\"\n";
+
+        exit;
+    }
+
+    
     elseif ($action === 'saveKeybinds') {
         if (!isset($_SESSION['user'])) {
             jsonResponse(['success' => false, 'message' => 'Non connecté']);
