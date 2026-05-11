@@ -370,15 +370,7 @@ tr:hover{background:#1f1f2e;}
     </div>
     <div id="rdvTab-liste" class="tab-content">
         <div class="filters">
-            <input type="text" id="rdvSearch" placeholder="🔍 Rechercher..." oninput="afficherRDV()">
-            <select id="rdvFilterMode" onchange="afficherRDV()">
-                <option value="all">Tous</option>
-                <option value="Free For All">FFA</option>
-                <option value="Team Deathmatch">TDM</option>
-                <option value="Capture The Flag">CTF</option>
-                <option value="Duel">Duel</option>
-                <option value="Autre">Autre</option>
-            </select>
+            
             <button class="btn-danger" onclick="clearAllRDV()">🗑️ Supprimer tout</button>
         </div>
         <div class="counter" id="rdvCounter">0 rendez-vous</div>
