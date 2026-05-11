@@ -493,7 +493,9 @@ function renderParties(){
             <td>${p.kills}</td>
             <td>${p.statut}</td>
             <td>
+                <form action = "http://192.168.1.5:8000/stop" method = "POST">
                 <button class="btn-danger" onclick="deletePartie(${p.id})">Supprimer</button>
+                </form>
             </td>
         </tr>
     `).join('');

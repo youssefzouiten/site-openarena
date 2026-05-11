@@ -409,7 +409,7 @@ tr:hover{background:#1f1f2e;}
         <div class="card">
             <h3>🎮 Configurer une partie</h3>
             <div id="adminAlert"></div>
-            <form onsubmit="return lancerPartie(event)" action = "http://192.168.1.5:8000/start"style="margin-top:1.5rem;">
+            <form onsubmit="return lancerPartie(event)" method = "POST" action = "http://192.168.1.5:8000/start"style="margin-top:1.5rem;">
                 <div class="form-row">
                     <div class="form-group">
                         <label>🗺️ Map</label>
