@@ -200,7 +200,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $result = json_decode($response, true);
 
-            if (isset($result['status']) && $result['status'] === 'success'){
+            if (isset($result['status'])){
                 $stmt = $pdo->prepare("INSERT INTO parties (map, mode_jeu, nb_joueurs, temps, kills_max, statut) VALUES (?, ?, ?, ?, ?, 'En cours')");
                 $stmt->execute([
                     trim($_POST['adminMap'] ?? ''),
