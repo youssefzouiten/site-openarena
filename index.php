@@ -200,7 +200,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $result = json_decode($response, true);
 
-            if (isset($result['status']) && $result['status'] === 'success'){
+            if (isset($result['status'])){
                 $stmt = $pdo->prepare("INSERT INTO parties (map, mode_jeu, nb_joueurs, temps, kills_max, statut) VALUES (?, ?, ?, ?, ?, 'En cours')");
                 $stmt->execute([
                     trim($_POST['adminMap'] ?? ''),
@@ -228,16 +228,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             curl_close($ch);
 
             $result = json_decode($response, true);
-            /*if (isset($result['status']) && $result['status'] === 'erreur'){
+            if (isset($result['status']) && $result['status'] === 'erreur'){
                 flash('error', 'Partie non supprimée.');
                 redirectTo('admin');
-            }*/
-
+            }
+            else {
                 $stmt = $pdo->prepare("DELETE FROM parties WHERE id = ?");
                 $stmt->execute([(int)($_POST['id'] ?? 0)]);
                 flash('success', 'Partie supprimée.');
                 redirectTo('admin');
-            
+            }
         }
 
         if ($action === 'edit_joueur') {
