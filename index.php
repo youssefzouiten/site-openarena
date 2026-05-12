@@ -201,6 +201,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $result = json_decode($response, true);
 
             if (isset($result['status']) && $result['status'] === 'success'){
+                flash('success', 'Partie lancée.');
+                redirectTo('admin');
                 $stmt = $pdo->prepare("INSERT INTO parties (map, mode_jeu, nb_joueurs, temps, kills_max, statut) VALUES (?, ?, ?, ?, ?, 'En cours')");
                 $stmt->execute([
                     trim($_POST['adminMap'] ?? ''),
@@ -209,8 +211,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     (int)($_POST['adminTemps'] ?? 0),
                     (int)($_POST['adminKills'] ?? 0),
                 ]);
-                flash('success', 'Partie lancée.');
-                redirectTo('admin');
             }
             else if (isset($result['status']) && $result['status'] === 'erreur')
                 {
