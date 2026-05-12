@@ -173,14 +173,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!isAdmin()) throw new Exception('Action réservée à l’admin.');
             $stmt = $pdo->prepare("INSERT INTO parties (map, mode_jeu, nb_joueurs, temps, kills_max, statut) VALUES (?, ?, ?, ?, ?, 'En cours')");
             $stmt->execute([
-                trim($_POST['map'] ?? ''),
-                trim($_POST['mode'] ?? ''),
-                (int)($_POST['nbJoueurs'] ?? 0),
-                (int)($_POST['temps'] ?? 0),
-                (int)($_POST['kills'] ?? 0),
+                trim($_POST['adminMap'] ?? ''),
+                trim($_POST['adminMode'] ?? ''),
+                (int)($_POST['adminJoueurs'] ?? 0),
+                (int)($_POST['adminTemps'] ?? 0),
+                (int)($_POST['adminKills'] ?? 0),
             ]);
-            flash('success', 'Partie lancée.');
-            redirectTo('admin');
+            $adminMap = trim($_POST['adminMap'] ?? '');
+            $adminMode = trim($_POST['adminMode'] ?? '');
+            $adminJoueurs = trim($_POST['adminJoueurs'] ?? '');
+            $adminTemps = trim($_POST['adminTemps'] ?? '5');
+            $adminKills = trim($_POST['adminKills'] ?? '5');
+
+            $ch = curl_init('http://192.168.1.5:8000/start');
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+                'adminMap' => $adminMap,
+                'adminMode' => $adminMode,
+                'adminTemps' => $adminTemps,
+                'adminKills' => $adminKills,
+                'adminJoueurs' => $adminJoueurs
+            ]));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            $response = curl_exec($ch);
+            curl_close($ch);
+
+            $result = json_decode($response, true);
+
+            if (isset($result['status']) && $result['status'] === 'success'){
+                $stmt = $pdo->prepare("INSERT INTO parties (map, mode_jeu, nb_joueurs, temps, kills_max, statut) VALUES (?, ?, ?, ?, ?, 'En cours')");
+                $stmt->execute([
+                    trim($_POST['adminMap'] ?? ''),
+                    trim($_POST['adminMode'] ?? ''),
+                    (int)($_POST['adminJoueurs'] ?? 0),
+                    (int)($_POST['adminTemps'] ?? 0),
+                    (int)($_POST['adminKills'] ?? 0),
+                ]);
+                flash('success', 'Partie lancée.');
+                redirectTo('admin');
+            }
+            else
+                {
+                    flash('success', 'Partie lancée.');
+                    redirectTo('admin');
+                }
         }
 
         if ($action === 'delete_partie') {
@@ -435,7 +471,50 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
 <section>
     <h2>⚙️ Panel Admin</h2>
     <?php if (!isAdmin()): ?><div class="alert alert-error">Accès réservé aux admins.</div><?php else: ?>
-    <div class="card"><h3>🎮 Configurer une partie</h3><form method="post"><input type="hidden" name="action" value="lancer_partie"><div class="form-row"><div class="form-group"><label>Map</label><select name="map"><?php foreach($maps as $value=>$label): ?><option value="<?= e($value) ?>"><?= e($label) ?></option><?php endforeach; ?></select></div><div class="form-group"><label>Mode</label><select name="mode"><?php foreach(array_slice($modes,0,4) as $m): ?><option value="<?= e($m) ?>"><?= e($m) ?></option><?php endforeach; ?></select></div></div><div class="form-row"><div class="form-group"><label>Joueurs max</label><input type="number" name="nbJoueurs" value="16" min="2" max="32"></div><div class="form-group"><label>Temps</label><input type="number" name="temps" value="15" min="1" max="60"></div></div><div class="form-group"><label>Kills max</label><input type="number" name="kills" value="30" min="1" max="100"></div><button class="btn-primary full">Lancer la partie</button></form></div>
+    <div class="card">
+        <h3>🎮 Configurer une partie</h3>
+        <form method="post">
+            <input type="hidden" name="action" value="lancer_partie">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Map</label>
+                    <select name="adminMap">
+                        <?php 
+                            foreach($maps as $value=>$label): 
+                        ?>
+                        <option value="<?= e($value) ?>">
+                                <?= e($label) ?>
+                        </option>
+                        <?php 
+                            endforeach; 
+                        ?>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Mode</label>
+                    <select name="adminMode">
+                        <?php 
+                            foreach(array_slice($modes,0,4) as $m): 
+                        ?>
+                        <option value="<?= e($m) ?>"><?= e($m) ?>
+                        </option><?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Joueurs max</label><input type="number" name="adminJoueurs" value="16" min="2" max="32">
+                </div>
+                <div class="form-group">
+                    <label>Temps</label><input type="number" name="adminTemps" value="15" min="1" max="60">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Kills max</label><input type="number" name="adminKills" value="30" min="1" max="100">
+            </div>
+            <button class="btn-primary full">Lancer la partie</button>
+        </form>
+    </div>
 
     <div class="card"><h3>📋 Parties</h3><table><thead><tr><th>Map</th><th>Mode</th><th>Joueurs</th><th>Temps</th><th>Kills</th><th>Statut</th><th>Action</th></tr></thead><tbody><?php foreach($parties as $p): ?><tr><td><?= e($p['map']) ?></td><td><?= e($p['mode']) ?></td><td><?= (int)$p['nbJoueurs'] ?></td><td><?= (int)$p['temps'] ?> min</td><td><?= (int)$p['kills'] ?></td><td><?= e($p['statut']) ?></td><td><form method="post" class="inline-form"><input type="hidden" name="action" value="delete_partie"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="btn-danger">Supprimer</button></form></td></tr><?php endforeach; ?></tbody></table></div>
 
