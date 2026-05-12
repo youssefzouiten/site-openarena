@@ -238,9 +238,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 foreach($result as $player){
                     $pseudo = $player[0];
                     $score = intval($player[1]);
-
+                    if ($score != 0){
                     $scrpt = $pdo->prepare("UPDATE joueurs SET score = score + ?, kills = kills + ?, matchs = matchs + 1 WHERE pseudo = ? ");
                     $scrpt->execute([$score,$score,$pseudo]);
+                    }
+                    else {
+                        $scrpt = $pdo->prepare("UPDATE joueurs SET matchs = matchs + 1 WHERE pseudo = ? ");
+                        $scrpt->execute([$pseudo]);
+                    }
                 }
                 flash('success', 'Partie supprimée.');
                 redirectTo('admin');
