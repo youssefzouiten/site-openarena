@@ -221,7 +221,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($action === 'delete_partie') {
             if (!isAdmin()) throw new Exception('Action réservée à l’admin.');
-            $ch = curl_init('http://192.168.1.5:8000/start');
+            $ch = curl_init('http://192.168.1.5:8000/stop');
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             $response = curl_exec($ch);
