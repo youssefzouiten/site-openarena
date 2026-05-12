@@ -235,13 +235,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             else */{
                 $stmt = $pdo->prepare("DELETE FROM parties WHERE id = ?");
                 $stmt->execute([(int)($_POST['id'] ?? 0)]);
-                foreach($result as $player){
+                /*foreach($result as $player){
                     $pseudo = $player[0];
                     $score = intval($player[1]);
 
                     $scrpt = $pdo->prepare("UPDATE joueurs SET score = score + ?, kills = kills + ?, matchs = matchs + 1 WHERE pseudo = ? ");
                     $scrpt->execute([$score,$score,$pseudo]);
-                }
+                }*/
                 flash('success', 'Partie supprimée.');
                 redirectTo('admin');
             }
