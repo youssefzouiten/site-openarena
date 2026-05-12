@@ -214,7 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             else
                 {
-                    flash('success', 'Partie lancée.');
+                    flash('error', 'Partie non lancée.');
                     redirectTo('admin');
                 }
         }
@@ -473,7 +473,7 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
     <?php if (!isAdmin()): ?><div class="alert alert-error">Accès réservé aux admins.</div><?php else: ?>
     <div class="card">
         <h3>🎮 Configurer une partie</h3>
-        <form method="post">
+        <form method="POST">
             <input type="hidden" name="action" value="lancer_partie">
             <div class="form-row">
                 <div class="form-group">
