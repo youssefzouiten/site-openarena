@@ -212,11 +212,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 flash('success', 'Partie lancée.');
                 redirectTo('admin');
             }
-          /*  else if (isset($result['status']) && $result['status'] === 'erreur')
-                {*/
+            else if (isset($result['status']) )
+                {
                     flash('error', 'Partie non lancée.');
                     redirectTo('admin');
-              //  }
+                }
         }
 
         if ($action === 'delete_partie') {
