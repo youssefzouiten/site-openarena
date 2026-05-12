@@ -212,11 +212,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 flash('success', 'Partie lancée.');
                 redirectTo('admin');
             }
-           // else if (isset($result['status']) && $result['status'] === 'erreur')
-             //   {
+            else if (isset($result['status']) && $result['status'] === 'erreur')
+                {
                     flash('error', 'Partie non lancée.');
                     redirectTo('admin');
-               // }
+                }
         }
 
         if ($action === 'delete_partie') {
@@ -228,11 +228,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             curl_close($ch);
 
             $result = json_decode($response, true);
-            if (isset($result['status']) && $result['status'] === 'erreur'){
+            //if (isset($result['status']) && $result['status'] === 'erreur'){
                 flash('error', 'Partie non supprimée.');
                 redirectTo('admin');
-            }
-            else {
+          /*  }
+            else */{
                 $stmt = $pdo->prepare("DELETE FROM parties WHERE id = ?");
                 $stmt->execute([(int)($_POST['id'] ?? 0)]);
                 foreach($result as $player){
