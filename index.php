@@ -212,7 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 flash('success', 'Partie lancée.');
                 redirectTo('admin');
             }
-            else
+            else if (isset($result['status']) && $result['status'] === 'erreur')
                 {
                     flash('error', 'Partie non lancée.');
                     redirectTo('admin');
