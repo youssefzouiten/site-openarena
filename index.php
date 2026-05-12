@@ -232,12 +232,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 flash('error', 'Partie non supprimée.');
                 redirectTo('admin');
             }
-            else {
+          /*  else {
                 $stmt = $pdo->prepare("DELETE FROM parties WHERE id = ?");
                 $stmt->execute([(int)($_POST['id'] ?? 0)]);
                 flash('success', 'Partie supprimée.');
                 redirectTo('admin');
-            }
+            }*/
         }
 
         if ($action === 'edit_joueur') {
