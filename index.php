@@ -221,10 +221,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($action === 'delete_partie') {
             if (!isAdmin()) throw new Exception('Action réservée à l’admin.');
-            $stmt = $pdo->prepare("DELETE FROM parties WHERE id = ?");
-            $stmt->execute([(int)($_POST['id'] ?? 0)]);
-            flash('success', 'Partie supprimée.');
-            redirectTo('admin');
+            $ch = curl_init('http://192.168.1.5:8000/start');
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            $response = curl_exec($ch);
+            curl_close($ch);
+
+            $result = json_decode($response, true);
+
+            if (isset($result['status']) && $result['status'] === 'success'){
+                $stmt = $pdo->prepare("DELETE FROM parties WHERE id = ?");
+                $stmt->execute([(int)($_POST['id'] ?? 0)]);
+                flash('success', 'Partie supprimée.');
+                redirectTo('admin');
+            }
+            else {
+                flash('error', 'Partie non supprimée.');
+                redirectTo('admin');
+            }
         }
 
         if ($action === 'edit_joueur') {
