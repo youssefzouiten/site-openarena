@@ -157,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
             }
 
-            flash('success', '✅ Tournoi créé avec succès ! (8 meilleurs joueurs)');
+            flash('success', 'Tournoi créé avec succès !');
             redirectTo('admin');
         }
 
