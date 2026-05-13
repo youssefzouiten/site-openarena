@@ -126,6 +126,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Création du tournoi
             $stmt = $pdo->prepare("INSERT INTO tournois (nom) VALUES (?)");
             $stmt->execute(['Championnat Inter-Villes']);
+            $tournoi_id = $pdo->lastInsertId();
+
+            // Récupération des 8 meilleurs joueurs (non admin)
+            $joueurs = getJoueurs($pdo, false);
+            $top8 = array_slice($joueurs, 0, 8);
             $scrpt = $pdo->prepare("UPDATE joueurs SET 
                 score = 0, 
                 kills = 0, 
@@ -133,11 +138,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 matchs = 0 
                 WHERE role != 'admin'");
             $scrpt->execute();
-            $tournoi_id = $pdo->lastInsertId();
-
-            // Récupération des 8 meilleurs joueurs (non admin)
-            $joueurs = getJoueurs($pdo, false);
-            $top8 = array_slice($joueurs, 0, 8);
 
             if (count($top8) < 8) {
                 throw new Exception('Pas assez de joueurs inscrits (minimum 8 requis).');
