@@ -110,6 +110,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirectTo('admin');
         }
 
+                // ==================== DÉCLARER GAGNANT ====================
+        if ($action === 'declarer_gagnant') {
+            if (!isAdmin()) throw new Exception('Action réservée à l’admin.');
+
+            $match_id = (int)($_POST['match_id'] ?? 0);
+            $winner   = trim($_POST['winner'] ?? '');
+
+            if ($match_id <= 0 || empty($winner)) {
+                throw new Exception('Données invalides.');
+            }
+
+            // Mise à jour du match
+            $stmt = $pdo->prepare("UPDATE tournoi_matches 
+                                  SET winner = ?, statut = 'finished' 
+                                  WHERE id = ?");
+            $stmt->execute([$winner, $match_id]);
+
+            flash('success', 'Gagnant enregistré avec succès !');
+            redirectTo('tournoi');
+        }
+
         if ($action === 'register') {
             $pseudo = trim($_POST['pseudo'] ?? '');
             $email = trim($_POST['email'] ?? '');
@@ -715,7 +736,8 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
     <h2>🏆 Tournoi 1v1 - 8 Joueurs</h2>
 
     <?php
-    // Récupération du tournoi actif
+    
+    // récupération du tournoi actif
     $stmt = $pdo->query("SELECT * FROM tournois WHERE statut = 'en_cours' ORDER BY id DESC LIMIT 1");
     $tournoi = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -746,8 +768,21 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
                     <div class="player"><?= e($m['player1'] ?? '---') ?></div>
                     <div class="vs">VS</div>
                     <div class="player"><?= e($m['player2'] ?? '---') ?></div>
+                    
                     <?php if ($m['statut'] === 'finished'): ?>
                         <div class="winner">✓ Gagnant : <strong><?= e($m['winner']) ?></strong></div>
+                    <?php else: ?>
+                        <!-- Formulaire pour déclarer le gagnant -->
+                        <form method="POST" class="winner-form">
+                            <input type="hidden" name="action" value="declarer_gagnant">
+                            <input type="hidden" name="match_id" value="<?= $m['id'] ?>">
+                            <select name="winner" required>
+                                <option value="">Choisir le gagnant</option>
+                                <option value="<?= e($m['player1']) ?>"><?= e($m['player1']) ?></option>
+                                <option value="<?= e($m['player2']) ?>"><?= e($m['player2']) ?></option>
+                            </select>
+                            <button type="submit" class="btn-primary small">Valider Gagnant</button>
+                        </form>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
@@ -759,7 +794,7 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
         <a href="index.php?page=admin" class="btn-primary">← Retour Panel Admin</a>
     </div>
 
-    <?php } ?>
+    <?php } ?>   
 </section>
 <style>
 .bracket-container { display:flex; justify-content:space-around; margin:30px 0; gap:40px; flex-wrap:wrap; }
@@ -771,6 +806,17 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
 .match-box.finished { border-color:#28a745; }
 .vs { color:#ff6b35; font-weight:bold; margin:8px 0; }
 .winner { margin-top:10px; color:#28a745; font-weight:bold; }
+.winner-form {
+    margin-top: 10px;
+}
+.winner-form select {
+    width: 100%;
+    margin-bottom: 8px;
+}
+.small {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+}
 </style>
 </section>
 <?php endif; ?>
