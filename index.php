@@ -771,6 +771,16 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
         <!-- Aucun tournoi en cours -->
         <form method="POST">
             <input type="hidden" name="action" value="creer_tournoi">
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Dropdown button
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#">Action</a></li>
+                    <li><a class="dropdown-item" href="#">Another action</a></li>
+                    <li><a class="dropdown-item" href="#">Something else here</a></li>
+                </ul>
+            </div>
             <button type="submit" class="btn-primary" style="padding:12px 25px;">
                 🏆 Créer un nouveau tournoi (8 joueurs)
             </button>
