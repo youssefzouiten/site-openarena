@@ -733,7 +733,7 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
 
 <?php if ($page === 'tournoi'): ?>
 <section>
-    <h2>🏆 Tournoi Championnat Inter-Villes - Round <?= $tournoi['round_actuel'] ?? 1 ?></h2>
+    <h2>🏆 Tournoi 1v1 - 8 Joueurs</h2>
 
     <?php
     $stmt = $pdo->query("SELECT * FROM tournois WHERE statut = 'en_cours' ORDER BY id DESC LIMIT 1");
@@ -764,24 +764,30 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
                     <div class="vs">VS</div>
                     <div class="player"><?= e($m['player2'] ?? '---') ?></div>
                     
-                    <!-- FORCER l'affichage du formulaire -->
-                    <form method="POST" class="winner-form" style="margin-top:12px;">
-                        <input type="hidden" name="action" value="declarer_gagnant">
-                        <input type="hidden" name="match_id" value="<?= $m['id'] ?>">
-                        <select name="winner" required>
-                            <option value="">→ Choisir le gagnant</option>
-                            <option value="<?= e($m['player1']) ?>"><?= e($m['player1']) ?></option>
-                            <option value="<?= e($m['player2']) ?>"><?= e($m['player2']) ?></option>
-                        </select>
-                        <button type="submit" class="btn-primary small">Valider Gagnant</button>
-                    </form>
+                    <!-- Toujours afficher le formulaire si le match n'est pas terminé -->
+                    <?php if ($m['statut'] !== 'finished'): ?>
+                        <form method="POST" class="winner-form" style="margin-top:12px;">
+                            <input type="hidden" name="action" value="declarer_gagnant">
+                            <input type="hidden" name="match_id" value="<?= $m['id'] ?>">
+                            <select name="winner" required>
+                                <option value="">→ Choisir le gagnant</option>
+                                <option value="<?= e($m['player1']) ?>"><?= e($m['player1']) ?></option>
+                                <option value="<?= e($m['player2']) ?>"><?= e($m['player2']) ?></option>
+                            </select>
+                            <button type="submit" class="btn-primary small">Valider Gagnant</button>
+                        </form>
+                    <?php else: ?>
+                        <div class="winner">✓ Gagnant : <strong><?= e($m['winner']) ?></strong></div>
+                    <?php endif; ?>
                 </div>
             <?php endforeach; ?>
         </div>
         <?php endfor; ?>
     </div>
 
-    <?php } ?>
+    <?php } ?>   
+</section>
+
 </section>
 <?php endif; ?>
 
