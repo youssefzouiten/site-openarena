@@ -773,8 +773,8 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
             <input type="hidden" name="action" value="creer_tournoi">
             <div class="form-row">
                 <div class="form-group">
-                    <label>Map</label>
-                    <select name="adminMap">
+                    <label>Joueur 1</label>
+                    <select name="joueur1">
                         <?php 
                             foreach($maps as $value=>$label): 
                         ?>
@@ -787,8 +787,8 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Mode</label>
-                    <select name="adminMode">
+                    <label>Joueur 2</label>
+                    <select name="joueur2">
                         <?php 
                             foreach(array_slice($modes,0,4) as $m): 
                         ?>
@@ -797,8 +797,8 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Mode</label>
-                    <select name="adminMode">
+                    <label>Joueur 3</label>
+                    <select name="joueur3">
                         <?php 
                             foreach(array_slice($modes,0,4) as $m): 
                         ?>
@@ -807,8 +807,8 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Mode</label>
-                    <select name="adminMode">
+                    <label>Joueur 4</label>
+                    <select name="joueur4">
                         <?php 
                             foreach(array_slice($modes,0,4) as $m): 
                         ?>
@@ -819,8 +819,8 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
             </div>
             <div class="form-row">
                 <div class="form-group">
-                    <label>Map</label>
-                    <select name="adminMap">
+                    <label>Joueur 5</label>
+                    <select name="joueur5">
                         <?php 
                             foreach($maps as $value=>$label): 
                         ?>
@@ -833,8 +833,8 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Mode</label>
-                    <select name="adminMode">
+                    <label>Joueur 6</label>
+                    <select name="joueur6">
                         <?php 
                             foreach(array_slice($modes,0,4) as $m): 
                         ?>
@@ -843,8 +843,8 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Mode</label>
-                    <select name="adminMode">
+                    <label>Joueur 7</label>
+                    <select name="joueur7">
                         <?php 
                             foreach(array_slice($modes,0,4) as $m): 
                         ?>
@@ -853,8 +853,8 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Mode</label>
-                    <select name="adminMode">
+                    <label>Joueur 8</label>
+                    <select name="joueur8">
                         <?php 
                             foreach(array_slice($modes,0,4) as $m): 
                         ?>
