@@ -126,6 +126,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Création du tournoi
             $stmt = $pdo->prepare("INSERT INTO tournois (nom) VALUES (?)");
             $stmt->execute(['Championnat Inter-Villes']);
+            $scrpt = $pdo->prepare("UPDATE joueurs SET 
+                score = 0, 
+                kills = 0, 
+                deaths = 0, 
+                matchs = 0 
+                WHERE role != 'admin'");
+            $scrpt->execute();
             $tournoi_id = $pdo->lastInsertId();
 
             // Récupération des 8 meilleurs joueurs (non admin)
