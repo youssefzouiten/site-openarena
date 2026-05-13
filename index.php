@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
     try {
-        // ==================== CRÉER TOURNOI ====================
+                // ==================== CRÉER TOURNOI ====================
         if ($action === 'creer_tournoi') {
             if (!isAdmin()) throw new Exception('Action réservée à l’admin.');
 
@@ -75,30 +75,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute(['Championnat Inter-Villes']);
             $tournoi_id = $pdo->lastInsertId();
 
-            // Liste des 8 meilleurs joueurs (ou tu peux choisir manuellement plus tard)
-            $joueurs = getJoueurs($pdo, false); // sans admin
+            // Récupération des 8 meilleurs joueurs (non admin)
+            $joueurs = getJoueurs($pdo, false);
             $top8 = array_slice($joueurs, 0, 8);
 
+            if (count($top8) < 8) {
+                throw new Exception('Pas assez de joueurs inscrits (minimum 8 requis).');
+            }
+
+            // Création des 4 matchs de quarts de finale
             $match_number = 1;
             for ($i = 0; $i < 8; $i += 2) {
                 $stmt = $pdo->prepare("INSERT INTO tournoi_matches 
                     (tournoi_id, round, match_number, player1, player2, statut) 
                     VALUES (?, 1, ?, ?, ?, 'pending')");
-                $stmt->execute([$tournoi_id, $match_number++, 
-                    $top8[$i]['pseudo'], 
+                $stmt->execute([
+                    $tournoi_id, 
+                    $match_number++,
+                    $top8[$i]['pseudo'],
                     $top8[$i+1]['pseudo']
                 ]);
             }
 
-            flash('success', 'Tournoi créé avec succès avec les 8 meilleurs joueurs !');
+            flash('success', '✅ Tournoi créé avec succès ! (8 meilleurs joueurs)');
             redirectTo('admin');
         }
 
         // ==================== TERMINER TOURNOI ====================
         if ($action === 'terminer_tournoi') {
             if (!isAdmin()) throw new Exception('Action réservée à l’admin.');
+            
             $pdo->prepare("UPDATE tournois SET statut = 'terminé' WHERE statut = 'en_cours'")->execute();
-            flash('success', 'Tournoi terminé.');
+            flash('success', 'Tournoi terminé avec succès.');
             redirectTo('admin');
         }
 
@@ -115,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!preg_match('/^[a-zA-Z0-9_]{3,30}$/', $pseudo)) throw new Exception('Pseudo invalide.');
             if (!in_array($role, ['joueur','admin'], true)) $role = 'joueur';
 
-            $stmt = $pdo->prepare("SELECT id FROM joueurs WHERE pseudo = ? OR email = ?");
+             $stmt = $pdo->prepare("SELECT id FROM joueurs WHERE pseudo = ? OR email = ?");
             $stmt->execute([$pseudo, $email]);
             if ($stmt->fetch()) throw new Exception('Pseudo ou email déjà utilisé.');
 
