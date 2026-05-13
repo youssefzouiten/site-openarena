@@ -736,21 +736,16 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
     <h2>🏆 Tournoi 1v1 - 8 Joueurs</h2>
 
     <?php
-    
-    // récupération du tournoi actif
     $stmt = $pdo->query("SELECT * FROM tournois WHERE statut = 'en_cours' ORDER BY id DESC LIMIT 1");
     $tournoi = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$tournoi) {
-        echo "<div class='alert alert-info'>Aucun tournoi en cours.<br>
-              <a href='index.php?page=admin' class='btn-primary'>Créer un tournoi depuis le panel admin</a></div>";
+        echo "<div class='alert alert-info'>Aucun tournoi en cours.</div>";
     } else {
         $stmt = $pdo->prepare("SELECT * FROM tournoi_matches WHERE tournoi_id = ? ORDER BY round, match_number");
         $stmt->execute([$tournoi['id']]);
         $matches = $stmt->fetchAll(PDO::FETCH_ASSOC);
     ?>
-
-    <p><strong>Tournoi :</strong> <?= e($tournoi['nom']) ?> — Round <?= $tournoi['round_actuel'] ?></p>
 
     <div class="bracket-container">
         
@@ -764,34 +759,30 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
             });
             foreach($roundMatches as $m): 
             ?>
-                <div class="match-box <?= $m['statut']=='finished' ? 'finished' : '' ?>">
+                <div class="match-box">
                     <div class="player"><?= e($m['player1'] ?? '---') ?></div>
                     <div class="vs">VS</div>
                     <div class="player"><?= e($m['player2'] ?? '---') ?></div>
                     
-                    <?php if ($m['statut'] === 'finished'): ?>
-                        <div class="winner">✓ Gagnant : <strong><?= e($m['winner']) ?></strong></div>
-                    <?php else: ?>
-                        <!-- Formulaire pour déclarer le gagnant -->
-                        <form method="POST" class="winner-form">
+                    <!-- Toujours afficher le formulaire si le match n'est pas terminé -->
+                    <?php if ($m['statut'] !== 'finished'): ?>
+                        <form method="POST" class="winner-form" style="margin-top:12px;">
                             <input type="hidden" name="action" value="declarer_gagnant">
                             <input type="hidden" name="match_id" value="<?= $m['id'] ?>">
                             <select name="winner" required>
-                                <option value="">Choisir le gagnant</option>
+                                <option value="">→ Choisir le gagnant</option>
                                 <option value="<?= e($m['player1']) ?>"><?= e($m['player1']) ?></option>
                                 <option value="<?= e($m['player2']) ?>"><?= e($m['player2']) ?></option>
                             </select>
                             <button type="submit" class="btn-primary small">Valider Gagnant</button>
                         </form>
+                    <?php else: ?>
+                        <div class="winner">✓ Gagnant : <strong><?= e($m['winner']) ?></strong></div>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
         </div>
         <?php endfor; ?>
-    </div>
-
-    <div style="text-align:center; margin-top:30px;">
-        <a href="index.php?page=admin" class="btn-primary">← Retour Panel Admin</a>
     </div>
 
     <?php } ?>   
