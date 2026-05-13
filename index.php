@@ -770,17 +770,20 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
     <?php if (!$tournoi): ?>
         <!-- Aucun tournoi en cours -->
         <form method="POST">
+            <?php 
+                $a=$pdo->prepare("SELECT pseudo FROM joueurs WHERE role != 'Admin'");
+                $a->execute();
+                $data=$a->fetchAll(); 
+            ?>
             <input type="hidden" name="action" value="creer_tournoi">
             <div class="form-row">
                 <div class="form-group">
                     <label>Joueur 1</label>
                     <select name="joueur1">
                         <?php 
-                            foreach($maps as $value=>$label): 
+                            foreach($data as $row): 
                         ?>
-                        <option value="<?= e($value) ?>">
-                                <?= e($label) ?>
-                        </option>
+                        <option value="joueur1"> <?=$row["pseudo"]?> </option>
                         <?php 
                             endforeach; 
                         ?>
@@ -790,30 +793,36 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
                     <label>Joueur 2</label>
                     <select name="joueur2">
                         <?php 
-                            foreach(array_slice($modes,0,4) as $m): 
+                            foreach($data as $row): 
                         ?>
-                        <option value="<?= e($m) ?>"><?= e($m) ?>
-                        </option><?php endforeach; ?>
+                        <option value="joueur2"> <?=$row["pseudo"]?> </option>
+                        <?php 
+                            endforeach; 
+                        ?>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Joueur 3</label>
                     <select name="joueur3">
                         <?php 
-                            foreach(array_slice($modes,0,4) as $m): 
+                            foreach($data as $row): 
                         ?>
-                        <option value="<?= e($m) ?>"><?= e($m) ?>
-                        </option><?php endforeach; ?>
+                        <option value="joueur3"> <?=$row["pseudo"]?> </option>
+                        <?php 
+                            endforeach; 
+                        ?>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Joueur 4</label>
                     <select name="joueur4">
                         <?php 
-                            foreach(array_slice($modes,0,4) as $m): 
+                            foreach($data as $row): 
                         ?>
-                        <option value="<?= e($m) ?>"><?= e($m) ?>
-                        </option><?php endforeach; ?>
+                        <option value="joueur4"> <?=$row["pseudo"]?> </option>
+                        <?php 
+                            endforeach; 
+                        ?>
                     </select>
                 </div>
             </div>
@@ -822,11 +831,9 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
                     <label>Joueur 5</label>
                     <select name="joueur5">
                         <?php 
-                            foreach($maps as $value=>$label): 
+                            foreach($data as $row): 
                         ?>
-                        <option value="<?= e($value) ?>">
-                                <?= e($label) ?>
-                        </option>
+                        <option value="joueur5"> <?=$row["pseudo"]?> </option>
                         <?php 
                             endforeach; 
                         ?>
@@ -836,30 +843,36 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
                     <label>Joueur 6</label>
                     <select name="joueur6">
                         <?php 
-                            foreach(array_slice($modes,0,4) as $m): 
+                            foreach($data as $row): 
                         ?>
-                        <option value="<?= e($m) ?>"><?= e($m) ?>
-                        </option><?php endforeach; ?>
+                        <option value="joueur6"> <?=$row["pseudo"]?> </option>
+                        <?php 
+                            endforeach; 
+                        ?>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Joueur 7</label>
                     <select name="joueur7">
                         <?php 
-                            foreach(array_slice($modes,0,4) as $m): 
+                            foreach($data as $row): 
                         ?>
-                        <option value="<?= e($m) ?>"><?= e($m) ?>
-                        </option><?php endforeach; ?>
+                        <option value="joueur7"> <?=$row["pseudo"]?> </option>
+                        <?php 
+                            endforeach; 
+                        ?>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Joueur 8</label>
                     <select name="joueur8">
                         <?php 
-                            foreach(array_slice($modes,0,4) as $m): 
+                            foreach($data as $row): 
                         ?>
-                        <option value="<?= e($m) ?>"><?= e($m) ?>
-                        </option><?php endforeach; ?>
+                        <option value="joueur8"> <?=$row["pseudo"]?> </option>
+                        <?php 
+                            endforeach; 
+                        ?>
                     </select>
                 </div>
             </div>
