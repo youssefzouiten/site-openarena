@@ -205,6 +205,93 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirectTo('touches');
         }
 
+        if ($action === 'getCFG') 
+        {
+
+            if (!isset($_SESSION['user'])) {
+                header("HTTP/1.1 403 Forbidden");
+                exit;
+            }
+
+            $pseudo = $_SESSION['user']['pseudo'];
+
+            $stmt = $pdo->prepare("SELECT keybinds FROM joueurs WHERE pseudo = ?");
+            $stmt->execute([$pseudo]);
+
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $defaults = [
+                'avancer' => 'Z',
+                'reculer' => 'S',
+                'gauche' => 'Q',
+                'droite' => 'D',
+                'sauter' => 'SPACE',
+                'tirer' => 'MOUSE1',
+                'viser' => 'MOUSE2'
+            ];
+
+            $keybinds = $defaults;
+
+            if ($row && !empty($row['keybinds'])) {
+
+                $decoded = json_decode($row['keybinds'], true);
+
+                if (is_array($decoded)) {
+                    $keybinds = array_merge($defaults, $decoded);
+                }
+            }
+
+            header('Content-Type: text/plain; charset=utf-8');
+
+            echo "unbindall\n\n";
+
+            echo 'bind "' . $keybinds['avancer'] . "\" \"+forward\"\n";
+            echo 'bind "' . $keybinds['reculer'] . "\" \"+back\"\n";
+            echo 'bind "' . $keybinds['gauche'] . "\" \"+moveleft\"\n";
+            echo 'bind "' . $keybinds['droite'] . "\" \"+moveright\"\n";
+            echo 'bind "' . $keybinds['sauter'] . "\" \"+moveup\"\n\n";
+            echo 'bind "' . $keybinds['tirer'] . "\" \"+attack\"\n";
+            echo 'bind "' . $keybinds['viser'] . "\" \"+zoom\"\n";
+
+            exit;
+        }
+        
+        if ($action === 'login_linux')
+         {
+            // Vérification des paramètres
+            if (empty($_POST['pseudo'])) {
+                header("HTTP/1.1 400 Bad Request");
+                echo "Pas de pseudo";
+                exit;
+            }
+
+            $pseudo = trim($_POST['pseudo']);
+
+            // Vérifier si le joueur existe
+            $stmt = $pdo->prepare("SELECT pseudo FROM joueurs WHERE pseudo = ?");
+            $stmt->execute([$pseudo]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // Si le joueur n'existe pas, la requete est refusee
+            if (!$user) {
+                header("HTTP/1.1 400 Bad Request");
+                echo "Joueur inexistant";
+                exit;
+            }
+
+            // Création de la session
+            $_SESSION['user'] = [
+                'pseudo' => $pseudo,
+                'login_time' => time()
+            ];
+
+            // Réponse simple pour le script shell
+            header("Content-Type: text/plain; charset=utf-8");
+            echo "OK";
+            exit;
+        }
+
+
         if ($action === 'lancer_partie') {
             if (!isAdmin()) throw new Exception('Action réservée à l’admin.');
             $stmt = $pdo->prepare("INSERT INTO parties (map, mode_jeu, nb_joueurs, temps, kills_max, statut) VALUES (?, ?, ?, ?, ?, 'En cours')");
