@@ -733,7 +733,7 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
 
 <?php if ($page === 'tournoi'): ?>
 <section>
-    <h2>🏆 Tournoi 1v1 - 8 Joueurs</h2>
+    <h2>🏆 Tournoi Championnat Inter-Villes - Round <?= $tournoi['round_actuel'] ?? 1 ?></h2>
 
     <?php
     $stmt = $pdo->query("SELECT * FROM tournois WHERE statut = 'en_cours' ORDER BY id DESC LIMIT 1");
@@ -759,14 +759,15 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
             });
             foreach($roundMatches as $m): 
             ?>
-                <div class="match-box">
+                <div class="match-box <?= ($m['statut'] === 'finished') ? 'finished' : '' ?>">
                     <div class="player"><?= e($m['player1'] ?? '---') ?></div>
                     <div class="vs">VS</div>
                     <div class="player"><?= e($m['player2'] ?? '---') ?></div>
                     
-                    <!-- Toujours afficher le formulaire si le match n'est pas terminé -->
-                    <?php if ($m['statut'] !== 'finished'): ?>
-                        <form method="POST" class="winner-form" style="margin-top:12px;">
+                    <?php if ($m['statut'] === 'finished'): ?>
+                        <div class="winner">✓ Gagnant : <strong><?= e($m['winner']) ?></strong></div>
+                    <?php else: ?>
+                        <form method="POST" class="winner-form">
                             <input type="hidden" name="action" value="declarer_gagnant">
                             <input type="hidden" name="match_id" value="<?= $m['id'] ?>">
                             <select name="winner" required>
@@ -776,8 +777,6 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
                             </select>
                             <button type="submit" class="btn-primary small">Valider Gagnant</button>
                         </form>
-                    <?php else: ?>
-                        <div class="winner">✓ Gagnant : <strong><?= e($m['winner']) ?></strong></div>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
@@ -785,9 +784,11 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
         <?php endfor; ?>
     </div>
 
-    <?php } ?>   
-</section>
+    <div style="text-align:center; margin-top:40px;">
+        <a href="index.php?page=admin" class="btn-primary">← Retour Panel Admin</a>
+    </div>
 
+    <?php } ?>
 </section>
 <?php endif; ?>
 
