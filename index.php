@@ -785,15 +785,6 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
                 Terminer le Tournoi
             </button>
         </form>
-
-        <!-- Bouton Supprimer le Tournoi (optionnel) -->
-        <form method="POST" class="inline-form" style="display:inline;" 
-              onsubmit="return confirm('⚠️ Supprimer définitivement ce tournoi ?')">
-            <input type="hidden" name="action" value="supprimer_tournoi">
-            <button type="submit" class="btn-danger">
-                🗑️ Supprimer Tournoi
-            </button>
-        </form>
     <?php endif; ?>
 </div>
     </div>
