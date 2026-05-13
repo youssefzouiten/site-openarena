@@ -771,6 +771,32 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
         <!-- Aucun tournoi en cours -->
         <form method="POST">
             <input type="hidden" name="action" value="creer_tournoi">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Map</label>
+                    <select name="adminMap">
+                        <?php 
+                            foreach($maps as $value=>$label): 
+                        ?>
+                        <option value="<?= e($value) ?>">
+                                <?= e($label) ?>
+                        </option>
+                        <?php 
+                            endforeach; 
+                        ?>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Mode</label>
+                    <select name="adminMode">
+                        <?php 
+                            foreach(array_slice($modes,0,4) as $m): 
+                        ?>
+                        <option value="<?= e($m) ?>"><?= e($m) ?>
+                        </option><?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
             <button type="submit" class="btn-primary" style="padding:12px 25px;">
                 🏆 Créer un nouveau tournoi (8 joueurs)
             </button>
