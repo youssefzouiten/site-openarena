@@ -584,7 +584,7 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
     
             <?php if (!isset($tournoi) || $tournoi['statut'] !== 'en_cours'): ?>
                 <!-- Bouton Créer un nouveau tournoi -->
-                <form method="post" style="margin-bottom:15px;">
+                <form method="POST" style="margin-bottom:15px;">
                     <input type="hidden" name="action" value="creer_tournoi">
                     <button type="submit" class="btn-primary" style="padding:12px 25px;">
                         🏆 Créer un nouveau Tournoi (8 joueurs)
