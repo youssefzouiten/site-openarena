@@ -57,7 +57,7 @@ function getParties(PDO $pdo) {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-$validPages = ['accueil','classement','rdv','joueurs','touches','profil','admin','login','register'];
+$validPages = ['accueil','classement','rdv','joueurs','touches','profil','admin','tournoi','login','register'];
 $page = $_GET['page'] ?? 'accueil';
 if (!in_array($page, $validPages, true)) $page = 'accueil';
 $rdvTab = $_GET['tab'] ?? 'publier';
@@ -323,7 +323,10 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
         <?php if ($user): ?>
             <li class="nav-separator"></li>
             <li><a class="nav-user" href="index.php?page=profil">👤 <?= e($user['pseudo']) ?></a></li>
-            <?php if (isAdmin()): ?><li><a href="index.php?page=admin">Admin</a></li><li><a href="index.php?page=tournoi">Tournoi</a></li><?php endif; ?>
+            <?php if (isAdmin()): ?>
+                <li><a href="index.php?page=admin">Admin</a></li>
+                <li><a href="index.php?page=tournoi">Tournoi</a></li>
+            <?php endif; ?>
             <li>
                 <form method="post" class="inline-form"><input type="hidden" name="action" value="logout"><button class="nav-button nav-logout">Déconnexion</button></form>
             </li>
