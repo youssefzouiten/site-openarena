@@ -617,52 +617,55 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
 
 <?php if ($page === 'tournoi'): ?>
 <section>
-<?php
-// Récupération du tournoi actif
-$stmt = $pdo->query("SELECT * FROM tournois WHERE statut = 'en_cours' ORDER BY id DESC LIMIT 1");
-$tournoi = $stmt->fetch();
+    <h2>🏆 Tournoi 1v1 - 8 Joueurs</h2>
 
-if (!$tournoi) {
-    echo "<div class='alert alert-info'>Aucun tournoi en cours. Créez-en un depuis le panel admin.</div>";
-    require_once 'includes/footer.php';
-    exit;
-}
+    <?php
+    // Récupération du tournoi actif
+    $stmt = $pdo->query("SELECT * FROM tournois WHERE statut = 'en_cours' ORDER BY id DESC LIMIT 1");
+    $tournoi = $stmt->fetch(PDO::FETCH_ASSOC);
 
-$stmt = $pdo->prepare("SELECT * FROM tournoi_matches WHERE tournoi_id = ? ORDER BY round, match_number");
-$stmt->execute([$tournoi['id']]);
-$matches = $stmt->fetchAll();
-?>
+    if (!$tournoi) {
+        echo "<div class='alert alert-info'>Aucun tournoi en cours.<br>
+              <a href='index.php?page=admin' class='btn-primary'>Créer un tournoi depuis le panel admin</a></div>";
+    } else {
+        $stmt = $pdo->prepare("SELECT * FROM tournoi_matches WHERE tournoi_id = ? ORDER BY round, match_number");
+        $stmt->execute([$tournoi['id']]);
+        $matches = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    ?>
 
-<h2>🏆 Tournoi <?= e($tournoi['nom']) ?> - Round <?= $tournoi['round_actuel'] ?></h2>
+    <p><strong>Tournoi :</strong> <?= e($tournoi['nom']) ?> — Round <?= $tournoi['round_actuel'] ?></p>
 
-<div class="bracket-container">
-    <?php for($r=1; $r<=3; $r++): ?>
-    <div class="round">
-        <h3><?= $r===1 ? 'Quarts de Finale' : ($r===2 ? 'Demi-finales' : 'FINALE') ?></h3>
-        <?php 
-        $roundMatches = array_filter($matches, function($m) use ($r) {
-        return $m['round'] == $r;
-        });
-        foreach($roundMatches as $m): 
-        ?>
-            <div class="match-box <?= $m['statut']=='finished' ? 'finished' : '' ?>">
-                <div class="player"><?= e($m['player1'] ?? '---') ?></div>
-                <div class="vs">VS</div>
-                <div class="player"><?= e($m['player2'] ?? '---') ?></div>
-                <?php if ($m['statut'] === 'finished'): ?>
-                    <div class="winner">Gagnant : <strong><?= e($m['winner']) ?></strong></div>
-                <?php endif; ?>
-            </div>
-        <?php endforeach; ?>
+    <div class="bracket-container">
+        
+        <?php for($r=1; $r<=3; $r++): ?>
+        <div class="round">
+            <h3><?= $r===1 ? 'Quarts de Finale' : ($r===2 ? 'Demi-finales' : '🎖️ FINALE') ?></h3>
+            
+            <?php 
+            $roundMatches = array_filter($matches, function($m) use ($r) {
+                return $m['round'] == $r;
+            });
+            foreach($roundMatches as $m): 
+            ?>
+                <div class="match-box <?= $m['statut']=='finished' ? 'finished' : '' ?>">
+                    <div class="player"><?= e($m['player1'] ?? '---') ?></div>
+                    <div class="vs">VS</div>
+                    <div class="player"><?= e($m['player2'] ?? '---') ?></div>
+                    <?php if ($m['statut'] === 'finished'): ?>
+                        <div class="winner">✓ Gagnant : <strong><?= e($m['winner']) ?></strong></div>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endfor; ?>
     </div>
-    <?php endfor; ?>
-</div>
 
-<!-- Boutons d'action -->
-<div style="margin-top:30px; text-align:center;">
-    <a href="admin.php" class="btn-primary">← Retour Panel Admin</a>
-</div>
+    <div style="text-align:center; margin-top:30px;">
+        <a href="index.php?page=admin" class="btn-primary">← Retour Panel Admin</a>
+    </div>
 
+    <?php } ?>
+</section>
 <style>
 .bracket-container { display:flex; justify-content:space-around; margin:30px 0; gap:40px; flex-wrap:wrap; }
 .round { text-align:center; }
