@@ -57,6 +57,59 @@ function getParties(PDO $pdo) {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+// ====================== AVANCER LE VAINQUEUR ======================
+function avancerVainqueur($pdo, $match_id) {
+    // Récupérer les infos du match terminé
+    $stmt = $pdo->prepare("SELECT * FROM tournoi_matches WHERE id = ?");
+    $stmt->execute([$match_id]);
+    $match = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$match || $match['round'] >= 3) return; // Pas de match après la finale
+
+    $tournoi_id = $match['tournoi_id'];
+    $round_actuel = $match['round'];
+    $next_round = $round_actuel + 1;
+
+    // Récupérer tous les matchs du round actuel
+    $stmt = $pdo->prepare("SELECT * FROM tournoi_matches WHERE tournoi_id = ? AND round = ? ORDER BY match_number");
+    $stmt->execute([$tournoi_id, $round_actuel]);
+    $matches = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Vérifier si tous les matchs du round actuel sont terminés
+    $all_finished = true;
+    foreach ($matches as $m) {
+        if ($m['statut'] !== 'finished') {
+            $all_finished = false;
+            break;
+        }
+    }
+
+    if (!$all_finished) return; // Pas encore tous les matchs terminés
+
+    // Créer les matchs du round suivant
+    if ($next_round === 2) { // Demi-finales
+        $stmt = $pdo->prepare("INSERT INTO tournoi_matches 
+            (tournoi_id, round, match_number, player1, player2, statut) 
+            VALUES (?, 2, 1, ?, ?, 'pending')");
+        $stmt->execute([$tournoi_id, $matches[0]['winner'], $matches[1]['winner']]);
+
+        $stmt = $pdo->prepare("INSERT INTO tournoi_matches 
+            (tournoi_id, round, match_number, player1, player2, statut) 
+            VALUES (?, 2, 2, ?, ?, 'pending')");
+        $stmt->execute([$tournoi_id, $matches[2]['winner'], $matches[3]['winner']]);
+    } 
+    elseif ($next_round === 3) { // Finale
+        $stmt = $pdo->prepare("INSERT INTO tournoi_matches 
+            (tournoi_id, round, match_number, player1, player2, statut) 
+            VALUES (?, 3, 1, ?, ?, 'pending')");
+        $stmt->execute([$tournoi_id, $matches[0]['winner'], $matches[1]['winner']]);
+    }
+
+    // Mettre à jour le round actuel du tournoi
+    $pdo->prepare("UPDATE tournois SET round_actuel = ? WHERE id = ?")
+         ->execute([$next_round, $tournoi_id]);
+}
+
 $validPages = ['accueil','classement','rdv','joueurs','touches','profil','admin','tournoi','login','register'];
 $page = $_GET['page'] ?? 'accueil';
 if (!in_array($page, $validPages, true)) $page = 'accueil';
@@ -110,7 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirectTo('admin');
         }
 
-                // ==================== DÉCLARER GAGNANT ====================
+        // ==================== DÉCLARER GAGNANT ====================
         if ($action === 'declarer_gagnant') {
             if (!isAdmin()) throw new Exception('Action réservée à l’admin.');
 
@@ -127,7 +180,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                   WHERE id = ?");
             $stmt->execute([$winner, $match_id]);
 
-            flash('success', 'Gagnant enregistré avec succès !');
+            // Avancer automatiquement vers le prochain round
+            avancerVainqueur($pdo, $match_id);
+
+            flash('success', 'Gagnant enregistré ! Le match suivant a été créé.');
             redirectTo('tournoi');
         }
 
