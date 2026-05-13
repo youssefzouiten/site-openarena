@@ -66,6 +66,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
     try {
+        // ==================== CRÉER TOURNOI ====================
+        if ($action === 'creer_tournoi') {
+            if (!isAdmin()) throw new Exception('Action réservée à l’admin.');
+
+            // Création du tournoi
+            $stmt = $pdo->prepare("INSERT INTO tournois (nom) VALUES (?)");
+            $stmt->execute(['Championnat Inter-Villes']);
+            $tournoi_id = $pdo->lastInsertId();
+
+            // Liste des 8 meilleurs joueurs (ou tu peux choisir manuellement plus tard)
+            $joueurs = getJoueurs($pdo, false); // sans admin
+            $top8 = array_slice($joueurs, 0, 8);
+
+            $match_number = 1;
+            for ($i = 0; $i < 8; $i += 2) {
+                $stmt = $pdo->prepare("INSERT INTO tournoi_matches 
+                    (tournoi_id, round, match_number, player1, player2, statut) 
+                    VALUES (?, 1, ?, ?, ?, 'pending')");
+                $stmt->execute([$tournoi_id, $match_number++, 
+                    $top8[$i]['pseudo'], 
+                    $top8[$i+1]['pseudo']
+                ]);
+            }
+
+            flash('success', 'Tournoi créé avec succès avec les 8 meilleurs joueurs !');
+            redirectTo('admin');
+        }
+
+        // ==================== TERMINER TOURNOI ====================
+        if ($action === 'terminer_tournoi') {
+            if (!isAdmin()) throw new Exception('Action réservée à l’admin.');
+            $pdo->prepare("UPDATE tournois SET statut = 'terminé' WHERE statut = 'en_cours'")->execute();
+            flash('success', 'Tournoi terminé.');
+            redirectTo('admin');
+        }
+
         if ($action === 'register') {
             $pseudo = trim($_POST['pseudo'] ?? '');
             $email = trim($_POST['email'] ?? '');
@@ -542,6 +578,34 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
             </div>
             <button class="btn-primary full">Lancer la partie</button>
         </form>
+        <!-- ====================== GESTION TOURNOI ====================== -->
+        <div class="card">
+            <h3>🏆 Gestion du Tournoi (8 Joueurs)</h3>
+    
+            <?php if (!isset($tournoi) || $tournoi['statut'] !== 'en_cours'): ?>
+                <!-- Bouton Créer un nouveau tournoi -->
+                <form method="post" style="margin-bottom:15px;">
+                    <input type="hidden" name="action" value="creer_tournoi">
+                    <button type="submit" class="btn-primary" style="padding:12px 25px;">
+                        🏆 Créer un nouveau Tournoi (8 joueurs)
+                    </button>
+                </form>
+            <?php else: ?>
+                <p><strong>Tournoi en cours :</strong> <?= e($tournoi['nom']) ?> 
+                    (Round <?= $tournoi['round_actuel'] ?>)</p>
+        
+                <a href="tournoi.php" class="btn-primary" style="margin-right:10px;">
+                    Voir la Grille du Tournoi
+                </a>
+        
+                <form method="POST" class="inline-form" style="display:inline;">
+                    <input type="hidden" name="action" value="terminer_tournoi">
+                    <button type="submit" class="btn-danger" onclick="return confirm('Terminer le tournoi ?')">
+                        Terminer le Tournoi
+                    </button>
+                </form>
+            <?php endif; ?>
+        </div>
     </div>
 
     <div class="card"><h3>📋 Parties</h3><table><thead><tr><th>Map</th><th>Mode</th><th>Joueurs</th><th>Temps</th><th>Kills</th><th>Statut</th><th>Action</th></tr></thead><tbody><?php foreach($parties as $p): ?><tr><td><?= e($p['map']) ?></td><td><?= e($p['mode']) ?></td><td><?= (int)$p['nbJoueurs'] ?></td><td><?= (int)$p['temps'] ?> min</td><td><?= (int)$p['kills'] ?></td><td><?= e($p['statut']) ?></td><td><form method="POST" class="inline-form"><input type="hidden" name="action" value="delete_partie"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="btn-danger">Supprimer</button></form></td></tr><?php endforeach; ?></tbody></table></div>
