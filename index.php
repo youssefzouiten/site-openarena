@@ -772,7 +772,7 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
         <form method="POST">
             <input type="hidden" name="action" value="creer_tournoi">
             <button type="submit" class="btn-primary" style="padding:12px 25px;">
-                🏆 Créer un nouveau Tournoi (8 joueurs)
+                🏆 Créer un nouveau tournoi (8 joueurs)
             </button>
         </form>
     <?php else: ?>
