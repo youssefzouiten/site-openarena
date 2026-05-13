@@ -751,33 +751,51 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
             <button class="btn-primary full">Lancer la partie</button>
         </form>
         <!-- ====================== GESTION TOURNOI ====================== -->
-        <div class="card">
-            <h3>🏆 Gestion du Tournoi (8 Joueurs)</h3>
+<div class="card">
+    <h3>🏆 Gestion du Tournoi (8 Joueurs)</h3>
     
-            <?php if (!isset($tournoi) || $tournoi['statut'] !== 'en_cours'): ?>
-                <!-- Bouton Créer un nouveau tournoi -->
-                <form method="POST" style="margin-bottom:15px;">
-                    <input type="hidden" name="action" value="creer_tournoi">
-                    <button type="submit" class="btn-primary" style="padding:12px 25px;">
-                        🏆 Créer un nouveau Tournoi (8 joueurs)
-                    </button>
-                </form>
-            <?php else: ?>
-                <p><strong>Tournoi en cours :</strong> <?= e($tournoi['nom']) ?> 
-                    (Round <?= $tournoi['round_actuel'] ?>)</p>
+    <?php 
+    // Récupération du tournoi en cours
+    $stmt = $pdo->query("SELECT * FROM tournois WHERE statut = 'en_cours' ORDER BY id DESC LIMIT 1");
+    $tournoi = $stmt->fetch(PDO::FETCH_ASSOC);
+    ?>
+
+    <?php if (!$tournoi): ?>
+        <!-- Aucun tournoi en cours -->
+        <form method="POST">
+            <input type="hidden" name="action" value="creer_tournoi">
+            <button type="submit" class="btn-primary" style="padding:12px 25px;">
+                🏆 Créer un nouveau Tournoi (8 joueurs)
+            </button>
+        </form>
+    <?php else: ?>
+        <!-- Tournoi en cours -->
+        <p><strong>Tournoi actif :</strong> <?= e($tournoi['nom']) ?> 
+           (Round <?= $tournoi['round_actuel'] ?>)</p>
         
-                <a href="tournoi.php" class="btn-primary" style="margin-right:10px;">
-                    Voir la Grille du Tournoi
-                </a>
+        <a href="index.php?page=tournoi" class="btn-primary" style="margin-right:10px;">
+            Voir la Grille du Tournoi
+        </a>
         
-                <form method="POST" class="inline-form" style="display:inline;">
-                    <input type="hidden" name="action" value="terminer_tournoi">
-                    <button type="submit" class="btn-danger" onclick="return confirm('Terminer le tournoi ?')">
-                        Terminer le Tournoi
-                    </button>
-                </form>
-            <?php endif; ?>
-        </div>
+        <!-- Bouton Terminer le Tournoi -->
+        <form method="POST" class="inline-form" style="display:inline;" 
+              onsubmit="return confirm('Terminer définitivement le tournoi ?')">
+            <input type="hidden" name="action" value="terminer_tournoi">
+            <button type="submit" class="btn-danger">
+                Terminer le Tournoi
+            </button>
+        </form>
+
+        <!-- Bouton Supprimer le Tournoi (optionnel) -->
+        <form method="POST" class="inline-form" style="display:inline;" 
+              onsubmit="return confirm('⚠️ Supprimer définitivement ce tournoi ?')">
+            <input type="hidden" name="action" value="supprimer_tournoi">
+            <button type="submit" class="btn-danger">
+                🗑️ Supprimer Tournoi
+            </button>
+        </form>
+    <?php endif; ?>
+</div>
     </div>
 
     <div class="card"><h3>📋 Parties</h3><table><thead><tr><th>Map</th><th>Mode</th><th>Joueurs</th><th>Temps</th><th>Kills</th><th>Statut</th><th>Action</th></tr></thead><tbody><?php foreach($parties as $p): ?><tr><td><?= e($p['map']) ?></td><td><?= e($p['mode']) ?></td><td><?= (int)$p['nbJoueurs'] ?></td><td><?= (int)$p['temps'] ?> min</td><td><?= (int)$p['kills'] ?></td><td><?= e($p['statut']) ?></td><td><form method="POST" class="inline-form"><input type="hidden" name="action" value="delete_partie"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="btn-danger">Supprimer</button></form></td></tr><?php endforeach; ?></tbody></table></div>
