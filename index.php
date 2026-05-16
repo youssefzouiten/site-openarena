@@ -119,21 +119,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
     try {
-         // ==================== CRÉER TOURNOI ====================
+                 // ==================== CRÉER TOURNOI ====================
         if ($action === 'creer_tournoi') {
             if (!isAdmin()) throw new Exception('Action réservée à l’admin.');
 
-            // Récupération des 8 joueurs sélectionnés
-            $selectedPlayers = [];
+            // Récupération des 8 joueurs
+            $selected = [];
             for($i=1; $i<=8; $i++) {
                 $player = trim($_POST["joueur$i"] ?? '');
-                if (empty($player)) throw new Exception("Joueur $i non sélectionné.");
-                $selectedPlayers[] = $player;
+                if (empty($player)) {
+                    throw new Exception("Joueur $i n'a pas été sélectionné.");
+                }
+                $selected[] = $player;
             }
 
-            // Vérification des doublons
-            if (count($selectedPlayers) !== count(array_unique($selectedPlayers))) {
-                throw new Exception('Un même joueur ne peut pas être sélectionné plusieurs fois.');
+            // ====================== VÉRIFICATION DOUBLONS ======================
+            $uniquePlayers = array_unique($selected);
+            if (count($selected) !== count($uniquePlayers)) {
+                $doublons = array_diff_assoc($selected, $uniquePlayers);
+                throw new Exception('Erreur : Certains joueurs sont sélectionnés plusieurs fois.');
             }
 
             // Remise à zéro des scores
@@ -144,7 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute(['Championnat Inter-Villes']);
             $tournoi_id = $pdo->lastInsertId();
 
-            // Création des 4 matchs de quarts
+            // Création des matchs de quarts
             $match_number = 1;
             for ($i = 0; $i < 8; $i += 2) {
                 $stmt = $pdo->prepare("INSERT INTO tournoi_matches 
@@ -153,12 +157,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute([
                     $tournoi_id, 
                     $match_number++,
-                    $selectedPlayers[$i],
-                    $selectedPlayers[$i+1]
+                    $selected[$i],
+                    $selected[$i+1]
                 ]);
             }
 
-            flash('success', '✅ Tournoi créé avec succès avec les 8 joueurs sélectionnés !');
+            flash('success', 'Tournoi créé avec succès avec 8 joueurs uniques !');
             redirectTo('admin');
         }
 
