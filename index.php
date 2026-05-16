@@ -119,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
     try {
-                 // ==================== CRÉER TOURNOI ====================
+        // ==================== CRÉER TOURNOI ====================
         if ($action === 'creer_tournoi') {
             if (!isAdmin()) throw new Exception('Action réservée à l’admin.');
 
@@ -133,11 +133,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $selected[] = $player;
             }
 
-            // ====================== VÉRIFICATION DOUBLONS ======================
-            $uniquePlayers = array_unique($selected);
-            if (count($selected) !== count($uniquePlayers)) {
-                $doublons = array_diff_assoc($selected, $uniquePlayers);
-                throw new Exception('Erreur : Certains joueurs sont sélectionnés plusieurs fois.');
+            // ====================== VÉRIFICATION DOUBLONS TRÈS STRICTE ======================
+            $counts = array_count_values($selected);
+            foreach($counts as $player => $count) {
+                if ($count > 1) {
+                    throw new Exception("Le joueur '$player' est sélectionné $count fois. Chaque joueur doit être unique.");
+                }
             }
 
             // Remise à zéro des scores
@@ -148,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute(['Championnat Inter-Villes']);
             $tournoi_id = $pdo->lastInsertId();
 
-            // Création des matchs de quarts
+            // Création des matchs
             $match_number = 1;
             for ($i = 0; $i < 8; $i += 2) {
                 $stmt = $pdo->prepare("INSERT INTO tournoi_matches 
