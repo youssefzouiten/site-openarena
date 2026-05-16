@@ -119,31 +119,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
     try {
-                // ==================== CRÉER TOURNOI ====================
+         // ==================== CRÉER TOURNOI ====================
         if ($action === 'creer_tournoi') {
             if (!isAdmin()) throw new Exception('Action réservée à l’admin.');
+
+            // Récupération des 8 joueurs sélectionnés
+            $selectedPlayers = [];
+            for($i=1; $i<=8; $i++) {
+                $player = trim($_POST["joueur$i"] ?? '');
+                if (empty($player)) throw new Exception("Joueur $i non sélectionné.");
+                $selectedPlayers[] = $player;
+            }
+
+            // Vérification des doublons
+            if (count($selectedPlayers) !== count(array_unique($selectedPlayers))) {
+                throw new Exception('Un même joueur ne peut pas être sélectionné plusieurs fois.');
+            }
+
+            // Remise à zéro des scores
+            $pdo->exec("UPDATE joueurs SET score = 0, kills = 0, deaths = 0, matchs = 0 WHERE role != 'admin'");
 
             // Création du tournoi
             $stmt = $pdo->prepare("INSERT INTO tournois (nom) VALUES (?)");
             $stmt->execute(['Championnat Inter-Villes']);
             $tournoi_id = $pdo->lastInsertId();
 
-            // Récupération des 8 meilleurs joueurs (non admin)
-            $joueurs = getJoueurs($pdo, false);
-            $top8 = array_slice($joueurs, 0, 8);
-            $scrpt = $pdo->prepare("UPDATE joueurs SET 
-                score = 0, 
-                kills = 0, 
-                deaths = 0, 
-                matchs = 0 
-                WHERE role != 'admin'");
-            $scrpt->execute();
-
-            if (count($top8) < 8) {
-                throw new Exception('Pas assez de joueurs inscrits (minimum 8 requis).');
-            }
-
-            // Création des 4 matchs de quarts de finale
+            // Création des 4 matchs de quarts
             $match_number = 1;
             for ($i = 0; $i < 8; $i += 2) {
                 $stmt = $pdo->prepare("INSERT INTO tournoi_matches 
@@ -152,12 +153,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute([
                     $tournoi_id, 
                     $match_number++,
-                    $top8[$i]['pseudo'],
-                    $top8[$i+1]['pseudo']
+                    $selectedPlayers[$i],
+                    $selectedPlayers[$i+1]
                 ]);
             }
 
-            flash('success', 'Tournoi créé avec succès !');
+            flash('success', '✅ Tournoi créé avec succès avec les 8 joueurs sélectionnés !');
             redirectTo('admin');
         }
 
