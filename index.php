@@ -808,13 +808,11 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
     <?php if (!$tournoi): ?>
         <!-- Aucun tournoi en cours -->
         <form method="POST">
-            <?php 
-                $a=$pdo->prepare("SELECT pseudo FROM joueurs WHERE role != 'Admin'");
-                $a->execute();
-                $data=$a->fetchAll(); 
-            ?>
-            <input type="hidden" name="action" value="creer_tournoi">
-            <div class="form-row">
+        <input type="hidden" name="action" value="creer_tournoi">
+        
+        <h4>Sélection des 8 joueurs pour le tournoi :</h4>
+        
+        <div class="form-row">
             <?php 
             $stmt = $pdo->query("SELECT pseudo FROM joueurs WHERE role != 'admin' ORDER BY pseudo");
             $allPlayers = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -831,10 +829,11 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
             </div>
             <?php endfor; ?>
         </div>
-            <button type="submit" class="btn-primary" style="padding:12px 25px;">
-                🏆 Créer un nouveau tournoi (8 joueurs)
-            </button>
-        </form>
+
+        <button type="submit" class="btn-primary" style="padding:12px 25px; margin-top:20px;">
+            🏆 Créer le Tournoi avec ces 8 joueurs
+        </button>
+    </form>
     <?php else: ?>
         <!-- Tournoi en cours -->
         <p><strong>Tournoi actif :</strong> <?= e($tournoi['nom']) ?> 
