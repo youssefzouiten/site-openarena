@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/config.php';
-
+require_once 'ad.php';
 function e($value) {
     return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8');
 }
@@ -233,18 +233,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirectTo('profil');
         }
 
-        if ($action === 'login') {
-            $pseudo = trim($_POST['pseudo'] ?? '');
-            $password = $_POST['password'] ?? '';
-            $stmt = $pdo->prepare("SELECT * FROM joueurs WHERE pseudo = ?");
-            $stmt->execute([$pseudo]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
-            if (!$user || !password_verify($password, $user['password'])) throw new Exception('Pseudo ou mot de passe incorrect.');
-            unset($user['password']);
-            $_SESSION['user'] = $user;
-            flash('success', 'Connexion réussie.');
-            redirectTo('profil');
-        }
+       if ($action === 'login') {
+
+    $pseudo = trim($_POST['pseudo'] ?? '');
+    $password = $_POST['password'] ?? '';
+
+    // Vérification Active Directory
+    if (!ad_login($pseudo, $password)) {
+        throw new Exception('Pseudo ou mot de passe Active Directory incorrect.');
+    }
+
+    // Vérifie si utilisateur existe dans la base locale
+    $stmt = $pdo->prepare("SELECT * FROM joueurs WHERE pseudo = ?");
+    $stmt->execute([$pseudo]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Si utilisateur n'existe pas en base locale
+    if (!$user) {
+
+        $role = ($pseudo === 'Administrator') ? 'admin' : 'joueur';
+
+        $stmt = $pdo->prepare("
+            INSERT INTO joueurs
+            (pseudo, email, password, ville, role)
+            VALUES (?, ?, '', 'Marseille', ?)
+        ");
+
+        $stmt->execute([
+            $pseudo,
+            $pseudo . '@openarena.local',
+            $role
+        ]);
+
+        $stmt = $pdo->prepare("SELECT * FROM joueurs WHERE pseudo = ?");
+        $stmt->execute([$pseudo]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    unset($user['password']);
+
+    $_SESSION['user'] = $user;
+
+    flash('success', 'Connexion Active Directory réussie.');
+    redirectTo('profil');
+}
 
         if ($action === 'logout') {
             $_SESSION = [];
