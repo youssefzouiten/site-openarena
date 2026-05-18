@@ -808,116 +808,32 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
     <?php if (!$tournoi): ?>
         <!-- Aucun tournoi en cours -->
         <form method="POST">
+        <input type="hidden" name="action" value="creer_tournoi">
+        
+        <h4>Sélection des 8 joueurs pour le tournoi :</h4>
+        
+        <div class="form-row">
             <?php 
-                $a=$pdo->prepare("SELECT pseudo FROM joueurs WHERE role != 'Admin'");
-                $a->execute();
-                $data=$a->fetchAll(); 
+            $stmt = $pdo->query("SELECT pseudo FROM joueurs WHERE role != 'admin' ORDER BY pseudo");
+            $allPlayers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            for($i=1; $i<=8; $i++): 
             ?>
-            <input type="hidden" name="action" value="creer_tournoi">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Joueur 1</label>
-                    <select name="joueur1">
-                        <?php 
-                            foreach($data as $row): 
-                        ?>
-                        <option value="joueur1"> <?=$row["pseudo"]?> </option>
-                        <?php 
-                            endforeach; 
-                        ?>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Joueur 2</label>
-                    <select name="joueur2">
-                        <?php 
-                            foreach($data as $row): 
-                        ?>
-                        <option value="joueur2"> <?=$row["pseudo"]?> </option>
-                        <?php 
-                            endforeach; 
-                        ?>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Joueur 3</label>
-                    <select name="joueur3">
-                        <?php 
-                            foreach($data as $row): 
-                        ?>
-                        <option value="joueur3"> <?=$row["pseudo"]?> </option>
-                        <?php 
-                            endforeach; 
-                        ?>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Joueur 4</label>
-                    <select name="joueur4">
-                        <?php 
-                            foreach($data as $row): 
-                        ?>
-                        <option value="joueur4"> <?=$row["pseudo"]?> </option>
-                        <?php 
-                            endforeach; 
-                        ?>
-                    </select>
-                </div>
+            <div class="form-group">
+                <label>Joueur <?= $i ?></label>
+                <select name="joueur<?= $i ?>" required>
+                    <option value="">-- Sélectionner un joueur --</option>
+                    <?php foreach($allPlayers as $p): ?>
+                    <option value="<?= e($p['pseudo']) ?>"><?= e($p['pseudo']) ?></option>
+                    <?php endforeach; ?>
+                </select>
             </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Joueur 5</label>
-                    <select name="joueur5">
-                        <?php 
-                            foreach($data as $row): 
-                        ?>
-                        <option value="joueur5"> <?=$row["pseudo"]?> </option>
-                        <?php 
-                            endforeach; 
-                        ?>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Joueur 6</label>
-                    <select name="joueur6">
-                        <?php 
-                            foreach($data as $row): 
-                        ?>
-                        <option value="joueur6"> <?=$row["pseudo"]?> </option>
-                        <?php 
-                            endforeach; 
-                        ?>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Joueur 7</label>
-                    <select name="joueur7">
-                        <?php 
-                            foreach($data as $row): 
-                        ?>
-                        <option value="joueur7"> <?=$row["pseudo"]?> </option>
-                        <?php 
-                            endforeach; 
-                        ?>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Joueur 8</label>
-                    <select name="joueur8">
-                        <?php 
-                            foreach($data as $row): 
-                        ?>
-                        <option value="joueur8"> <?=$row["pseudo"]?> </option>
-                        <?php 
-                            endforeach; 
-                        ?>
-                    </select>
-                </div>
-            </div>
-            <button type="submit" class="btn-primary" style="padding:12px 25px;">
-                🏆 Créer un nouveau tournoi (8 joueurs)
-            </button>
-        </form>
+            <?php endfor; ?>
+        </div>
+
+        <button type="submit" class="btn-primary" style="padding:12px 25px; margin-top:20px;">
+            🏆 Créer le Tournoi avec ces 8 joueurs
+        </button>
+    </form>
     <?php else: ?>
         <!-- Tournoi en cours -->
         <p><strong>Tournoi actif :</strong> <?= e($tournoi['nom']) ?> 
