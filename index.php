@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/config.php';
-require_once 'ad.php';
+
 function e($value) {
     return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8');
 }
@@ -233,50 +233,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirectTo('profil');
         }
 
-       if ($action === 'login') {
-
-    $pseudo = trim($_POST['pseudo'] ?? '');
-    $password = $_POST['password'] ?? '';
-
-    // Vérification Active Directory
-    if (!ad_login($pseudo, $password)) {
-        throw new Exception('Pseudo ou mot de passe Active Directory incorrect.');
-    }
-
-    // Vérifie si utilisateur existe dans la base locale
-    $stmt = $pdo->prepare("SELECT * FROM joueurs WHERE pseudo = ?");
-    $stmt->execute([$pseudo]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    // Si utilisateur n'existe pas en base locale
-    if (!$user) {
-
-        $role = ($pseudo === 'Administrator') ? 'admin' : 'joueur';
-
-        $stmt = $pdo->prepare("
-            INSERT INTO joueurs
-            (pseudo, email, password, ville, role)
-            VALUES (?, ?, '', 'Marseille', ?)
-        ");
-
-        $stmt->execute([
-            $pseudo,
-            $pseudo . '@openarena.local',
-            $role
-        ]);
-
-        $stmt = $pdo->prepare("SELECT * FROM joueurs WHERE pseudo = ?");
-        $stmt->execute([$pseudo]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-    }
-
-    unset($user['password']);
-
-    $_SESSION['user'] = $user;
-
-    flash('success', 'Connexion Active Directory réussie.');
-    redirectTo('profil');
-}
+        if ($action === 'login') {
+            $pseudo = trim($_POST['pseudo'] ?? '');
+            $password = $_POST['password'] ?? '';
+            $stmt = $pdo->prepare("SELECT * FROM joueurs WHERE pseudo = ?");
+            $stmt->execute([$pseudo]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$user || !password_verify($password, $user['password'])) throw new Exception('Pseudo ou mot de passe incorrect.');
+            unset($user['password']);
+            $_SESSION['user'] = $user;
+            flash('success', 'Connexion réussie.');
+            redirectTo('profil');
+        }
 
         if ($action === 'logout') {
             $_SESSION = [];
@@ -808,32 +776,116 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
     <?php if (!$tournoi): ?>
         <!-- Aucun tournoi en cours -->
         <form method="POST">
-        <input type="hidden" name="action" value="creer_tournoi">
-        
-        <h4>Sélection des 8 joueurs pour le tournoi :</h4>
-        
-        <div class="form-row">
             <?php 
-            $stmt = $pdo->query("SELECT pseudo FROM joueurs WHERE role != 'admin' ORDER BY pseudo");
-            $allPlayers = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            for($i=1; $i<=8; $i++): 
+                $a=$pdo->prepare("SELECT pseudo FROM joueurs WHERE role != 'Admin'");
+                $a->execute();
+                $data=$a->fetchAll(); 
             ?>
-            <div class="form-group">
-                <label>Joueur <?= $i ?></label>
-                <select name="joueur<?= $i ?>" required>
-                    <option value="">-- Sélectionner un joueur --</option>
-                    <?php foreach($allPlayers as $p): ?>
-                    <option value="<?= e($p['pseudo']) ?>"><?= e($p['pseudo']) ?></option>
-                    <?php endforeach; ?>
-                </select>
+            <input type="hidden" name="action" value="creer_tournoi">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Joueur 1</label>
+                    <select name="joueur1">
+                        <?php 
+                            foreach($data as $row): 
+                        ?>
+                        <option value="joueur1"> <?=$row["pseudo"]?> </option>
+                        <?php 
+                            endforeach; 
+                        ?>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Joueur 2</label>
+                    <select name="joueur2">
+                        <?php 
+                            foreach($data as $row): 
+                        ?>
+                        <option value="joueur2"> <?=$row["pseudo"]?> </option>
+                        <?php 
+                            endforeach; 
+                        ?>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Joueur 3</label>
+                    <select name="joueur3">
+                        <?php 
+                            foreach($data as $row): 
+                        ?>
+                        <option value="joueur3"> <?=$row["pseudo"]?> </option>
+                        <?php 
+                            endforeach; 
+                        ?>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Joueur 4</label>
+                    <select name="joueur4">
+                        <?php 
+                            foreach($data as $row): 
+                        ?>
+                        <option value="joueur4"> <?=$row["pseudo"]?> </option>
+                        <?php 
+                            endforeach; 
+                        ?>
+                    </select>
+                </div>
             </div>
-            <?php endfor; ?>
-        </div>
-
-        <button type="submit" class="btn-primary" style="padding:12px 25px; margin-top:20px;">
-            🏆 Créer le Tournoi avec ces 8 joueurs
-        </button>
-    </form>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Joueur 5</label>
+                    <select name="joueur5">
+                        <?php 
+                            foreach($data as $row): 
+                        ?>
+                        <option value="joueur5"> <?=$row["pseudo"]?> </option>
+                        <?php 
+                            endforeach; 
+                        ?>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Joueur 6</label>
+                    <select name="joueur6">
+                        <?php 
+                            foreach($data as $row): 
+                        ?>
+                        <option value="joueur6"> <?=$row["pseudo"]?> </option>
+                        <?php 
+                            endforeach; 
+                        ?>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Joueur 7</label>
+                    <select name="joueur7">
+                        <?php 
+                            foreach($data as $row): 
+                        ?>
+                        <option value="joueur7"> <?=$row["pseudo"]?> </option>
+                        <?php 
+                            endforeach; 
+                        ?>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Joueur 8</label>
+                    <select name="joueur8">
+                        <?php 
+                            foreach($data as $row): 
+                        ?>
+                        <option value="joueur8"> <?=$row["pseudo"]?> </option>
+                        <?php 
+                            endforeach; 
+                        ?>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn-primary" style="padding:12px 25px;">
+                🏆 Créer un nouveau tournoi (8 joueurs)
+            </button>
+        </form>
     <?php else: ?>
         <!-- Tournoi en cours -->
         <p><strong>Tournoi actif :</strong> <?= e($tournoi['nom']) ?> 
