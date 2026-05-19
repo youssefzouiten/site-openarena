@@ -3,7 +3,7 @@
 $user = "Administrator@openarena.local";
 $pass = "Group4_";
 
-$ldapconn = ldap_connect("ldap://192.168.50.30");
+$ldapconn = ldap_connect("ldap://192.168.1.200");
 
 ldap_set_option($ldapconn, LDAP_OPT_PROTOCOL_VERSION, 3);
 ldap_set_option($ldapconn, LDAP_OPT_REFERRALS, 0);

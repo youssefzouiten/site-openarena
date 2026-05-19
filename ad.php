@@ -2,7 +2,7 @@
 
 function ad_login($pseudo, $password) {
 
-    $ldap = ldap_connect("ldap://192.168.50.30");
+    $ldap = ldap_connect("ldap://192.168.1.200");
 
     ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
     ldap_set_option($ldap, LDAP_OPT_REFERRALS, 0);
@@ -42,7 +42,7 @@ function ad_create_user($pseudo, $email) {
     $adminUser = "Administrator@openarena.local";
     $adminPass = "Group4_";
 
-    $ldap = ldap_connect("ldap://192.168.50.30");
+    $ldap = ldap_connect("ldap://192.168.1.200");
 
     ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
     ldap_set_option($ldap, LDAP_OPT_REFERRALS, 0);

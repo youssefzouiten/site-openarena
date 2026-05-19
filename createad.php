@@ -5,7 +5,7 @@ error_reporting(E_ALL);
 
 $adminUser = "Administrator@openarena.local";
 $adminPass = "Group4_";
-$ldapServer = "ldap://192.168.50.30";
+$ldapServer = "ldap://192.168.1.200";
 
 $pseudo = "joueurtest";
 $email = "joueurtest@openarena.local";
