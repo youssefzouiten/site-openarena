@@ -7,16 +7,33 @@ function ad_login($pseudo, $password) {
     ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
     ldap_set_option($ldap, LDAP_OPT_REFERRALS, 0);
 
-    $login = $pseudo . "@openarena.local";
+    $login1 = $pseudo . "@openarena.local";
+    $login2 = "OPENARENA\\" . $pseudo;
 
-    $bind = @ldap_bind($ldap, $login, $password);
+    echo "<pre>";
+    echo "TEST LOGIN 1 : $login1\n";
 
-    if ($bind) {
+    if (@ldap_bind($ldap, $login1, $password)) {
+        echo "LOGIN 1 OK";
         ldap_close($ldap);
         return true;
     }
 
+    echo "LOGIN 1 FAILED\n";
+    echo "TEST LOGIN 2 : $login2\n";
+
+    if (@ldap_bind($ldap, $login2, $password)) {
+        echo "LOGIN 2 OK";
+        ldap_close($ldap);
+        return true;
+    }
+
+    echo "LOGIN 2 FAILED\n";
+
+    echo "LDAP ERROR : " . ldap_error($ldap);
+
     ldap_close($ldap);
+
     return false;
 }
 
