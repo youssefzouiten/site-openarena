@@ -200,80 +200,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirectTo('tournoi');
         }
 
-   if ($action === 'register') {
+        if ($action === 'register') {
+            $pseudo = trim($_POST['pseudo'] ?? '');
+            $email = trim($_POST['email'] ?? '');
+            $password = $_POST['password'] ?? '';
+            $password2 = $_POST['password_confirm'] ?? '';
+            $ville = trim($_POST['ville'] ?? 'Marseille');
+            $role = isAdmin() ? trim($_POST['role'] ?? 'joueur') : 'joueur';
+
+            if ($pseudo === '' || $email === '' || $password === '') throw new Exception('Champs manquants.');
+            if ($password !== $password2) throw new Exception('Les mots de passe ne correspondent pas.');
+            if (!preg_match('/^[a-zA-Z0-9_]{3,30}$/', $pseudo)) throw new Exception('Pseudo invalide.');
+            if (!in_array($role, ['joueur','admin'], true)) $role = 'joueur';
+
+             $stmt = $pdo->prepare("SELECT id FROM joueurs WHERE pseudo = ? OR email = ?");
+            $stmt->execute([$pseudo, $email]);
+            if ($stmt->fetch()) throw new Exception('Pseudo ou email déjà utilisé.');
+
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare("INSERT INTO joueurs (pseudo, email, password, ville, role) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$pseudo, $email, $hash, $ville, $role]);
+
+            if (isAdmin()) {
+                flash('success', 'Joueur ajouté avec succès.');
+                redirectTo('admin');
+            }
+
+            $stmt = $pdo->prepare("SELECT id, pseudo, email, ville, role, score, kills, deaths, matchs, createAt, keybinds FROM joueurs WHERE pseudo = ?");
+            $stmt->execute([$pseudo]);
+            $_SESSION['user'] = $stmt->fetch(PDO::FETCH_ASSOC);
+            flash('success', 'Compte créé avec succès.');
+            redirectTo('profil');
+        }
+
+       if ($action === 'login') {
 
     $pseudo = trim($_POST['pseudo'] ?? '');
-    $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
-    $password2 = $_POST['password_confirm'] ?? '';
-    $ville = trim($_POST['ville'] ?? 'Marseille');
-    $role = isAdmin() ? trim($_POST['role'] ?? 'joueur') : 'joueur';
 
-    if ($pseudo === '' || $email === '' || $password === '') {
-        throw new Exception('Champs manquants.');
+    // Vérification Active Directory
+    if (!ad_login($pseudo, $password)) {
+        throw new Exception('Pseudo ou mot de passe Active Directory incorrect.');
     }
 
-    if ($password !== $password2) {
-        throw new Exception('Les mots de passe ne correspondent pas.');
-    }
-
-    if (!preg_match('/^[a-zA-Z0-9_]{3,30}$/', $pseudo)) {
-        throw new Exception('Pseudo invalide.');
-    }
-
-    if (!in_array($role, ['joueur','admin'], true)) {
-        $role = 'joueur';
-    }
-
-    $stmt = $pdo->prepare("SELECT id FROM joueurs WHERE pseudo = ? OR email = ?");
-    $stmt->execute([$pseudo, $email]);
-
-    if ($stmt->fetch()) {
-        throw new Exception('Pseudo ou email déjà utilisé.');
-    }
-
-    // =========================
-    // CREATION ACTIVE DIRECTORY
-    // =========================
-
-    if (!ad_create_user($pseudo, $email)) {
-        throw new Exception("Erreur : impossible de créer l'utilisateur dans Active Directory.");
-    }
-
-    // =========================
-    // CREATION MYSQL
-    // =========================
-
-    $stmt = $pdo->prepare("
-        INSERT INTO joueurs
-        (pseudo, email, password, ville, role)
-        VALUES (?, ?, '', ?, ?)
-    ");
-
-    $stmt->execute([
-        $pseudo,
-        $email,
-        $ville,
-        $role
-    ]);
-
-    if (isAdmin()) {
-        flash('success', 'Joueur ajouté avec succès.');
-        redirectTo('admin');
-    }
-
-    $stmt = $pdo->prepare("
-        SELECT id, pseudo, email, ville, role, score, kills, deaths, matchs, createAt, keybinds
-        FROM joueurs
-        WHERE pseudo = ?
-    ");
-
+    // Vérifie si utilisateur existe dans la base locale
+    $stmt = $pdo->prepare("SELECT * FROM joueurs WHERE pseudo = ?");
     $stmt->execute([$pseudo]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    $_SESSION['user'] = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Si utilisateur n'existe pas en base locale
+    if (!$user) {
 
-    flash('success', 'Compte créé avec succès dans Active Directory.');
+        $role = ($pseudo === 'Administrator') ? 'admin' : 'joueur';
 
+        $stmt = $pdo->prepare("
+            INSERT INTO joueurs
+            (pseudo, email, password, ville, role)
+            VALUES (?, ?, '', 'Marseille', ?)
+        ");
+
+        $stmt->execute([
+            $pseudo,
+            $pseudo . '@openarena.local',
+            $role
+        ]);
+
+        $stmt = $pdo->prepare("SELECT * FROM joueurs WHERE pseudo = ?");
+        $stmt->execute([$pseudo]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    unset($user['password']);
+
+    $_SESSION['user'] = $user;
+
+    flash('success', 'Connexion Active Directory réussie.');
     redirectTo('profil');
 }
 
