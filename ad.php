@@ -2,7 +2,7 @@
 
 function ad_login($pseudo, $password) {
 
-    $ldap = ldap_connect("ldap://192.168.1.200");
+    $ldap = ldap_connect("ldap://192.168.50.30");
 
     ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
     ldap_set_option($ldap, LDAP_OPT_REFERRALS, 0);
@@ -13,7 +13,7 @@ function ad_login($pseudo, $password) {
     echo "<pre>";
     echo "TEST LOGIN 1 : $login1\n";
 
-    if (@ldap_bind($ldap, $login1, $password)) {
+    if (ldap_bind($ldap, $login1, $password)) {
         echo "LOGIN 1 OK";
         ldap_close($ldap);
         return true;
