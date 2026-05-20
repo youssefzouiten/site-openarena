@@ -462,9 +462,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 trim($_POST['adminMode'] ?? ''),
                 (int)($_POST['adminJoueurs'] ?? 0),
                 (int)($_POST['adminTemps'] ?? 0),
-                (int)($_POST['adminKills'] ?? 0),
-                trim($_POST['joueur1'] ?? ''),
-                trim($_POST['joueur2'] ?? '')
+                (int)($_POST['adminKills'] ?? 0)
             ]);
             $adminMap = trim($_POST['adminMap'] ?? '');
             $adminMode = trim($_POST['adminMode'] ?? '');
