@@ -826,7 +826,7 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
                 <label>Kills max</label><input type="number" name="adminKills" value="30" min="1" max="100">
             </div>
             <div class="form-row">
-            <label>Joueurs du tournoi</label>
+            <h4>Joueurs du tournoi</h4>
             <?php 
             $stmt = $pdo->query("SELECT pseudo FROM joueurs WHERE role != 'admin' ORDER BY pseudo");
             $allPlayers = $stmt->fetchAll(PDO::FETCH_ASSOC);
