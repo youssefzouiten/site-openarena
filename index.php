@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/config.php';
-require_once 'ad.php';
+require_once __DIR__ . '/ad.php';
 function e($value) {
     return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8');
 }
@@ -200,38 +200,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirectTo('tournoi');
         }
 
-        if ($action === 'register') {
-            $pseudo = trim($_POST['pseudo'] ?? '');
-            $email = trim($_POST['email'] ?? '');
-            $password = $_POST['password'] ?? '';
-            $password2 = $_POST['password_confirm'] ?? '';
-            $ville = trim($_POST['ville'] ?? 'Marseille');
-            $role = isAdmin() ? trim($_POST['role'] ?? 'joueur') : 'joueur';
+    if ($action === 'register') {
+    $pseudo = trim($_POST['pseudo'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $password2 = $_POST['password_confirm'] ?? '';
+    $ville = trim($_POST['ville'] ?? 'Marseille');
+    $role = isAdmin() ? trim($_POST['role'] ?? 'joueur') : 'joueur';
 
-            if ($pseudo === '' || $email === '' || $password === '') throw new Exception('Champs manquants.');
-            if ($password !== $password2) throw new Exception('Les mots de passe ne correspondent pas.');
-            if (!preg_match('/^[a-zA-Z0-9_]{3,30}$/', $pseudo)) throw new Exception('Pseudo invalide.');
-            if (!in_array($role, ['joueur','admin'], true)) $role = 'joueur';
+    if ($pseudo === '' || $email === '' || $password === '') {
+        throw new Exception('Champs manquants.');
+    }
 
-             $stmt = $pdo->prepare("SELECT id FROM joueurs WHERE pseudo = ? OR email = ?");
-            $stmt->execute([$pseudo, $email]);
-            if ($stmt->fetch()) throw new Exception('Pseudo ou email déjà utilisé.');
+    if ($password !== $password2) {
+        throw new Exception('Les mots de passe ne correspondent pas.');
+    }
 
-            $hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO joueurs (pseudo, email, password, ville, role) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([$pseudo, $email, $hash, $ville, $role]);
+    if (!preg_match('/^[a-zA-Z0-9_]{3,30}$/', $pseudo)) {
+        throw new Exception('Pseudo invalide.');
+    }
 
-            if (isAdmin()) {
-                flash('success', 'Joueur ajouté avec succès.');
-                redirectTo('admin');
-            }
+    if (!in_array($role, ['joueur','admin'], true)) {
+        $role = 'joueur';
+    }
 
-            $stmt = $pdo->prepare("SELECT id, pseudo, email, ville, role, score, kills, deaths, matchs, createAt, keybinds FROM joueurs WHERE pseudo = ?");
-            $stmt->execute([$pseudo]);
-            $_SESSION['user'] = $stmt->fetch(PDO::FETCH_ASSOC);
-            flash('success', 'Compte créé avec succès.');
-            redirectTo('profil');
-        }
+    $stmt = $pdo->prepare("SELECT id FROM joueurs WHERE pseudo = ? OR email = ?");
+    $stmt->execute([$pseudo, $email]);
+
+    if ($stmt->fetch()) {
+        throw new Exception('Pseudo ou email déjà utilisé.');
+    }
+
+    // 1) Créer le joueur dans Active Directory
+    if (!ad_create_user($pseudo, $email)) {
+        throw new Exception("Erreur : impossible de créer l'utilisateur dans Active Directory.");
+    }
+
+    // 2) Créer le joueur dans MySQL
+    $hash = password_hash($password, PASSWORD_DEFAULT);
+
+    $stmt = $pdo->prepare("
+        INSERT INTO joueurs 
+        (pseudo, email, password, ville, role) 
+        VALUES (?, ?, ?, ?, ?)
+    ");
+
+    $stmt->execute([$pseudo, $email, $hash, $ville, $role]);
+
+    if (isAdmin()) {
+        flash('success', 'Joueur ajouté dans Active Directory et OpenArena.');
+        redirectTo('admin');
+    }
+
+    $stmt = $pdo->prepare("
+        SELECT id, pseudo, email, ville, role, score, kills, deaths, matchs, createAt, keybinds 
+        FROM joueurs 
+        WHERE pseudo = ?
+    ");
+
+    $stmt->execute([$pseudo]);
+    $_SESSION['user'] = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    flash('success', 'Compte créé dans Active Directory et OpenArena.');
+    redirectTo('profil');
+}
 
        if ($action === 'login') {
 
