@@ -53,7 +53,7 @@ function ad_create_user($pseudo, $email) {
         return false;
     }
 
-    $dn = "CN=$pseudo,CN=Users,DC=openarena,DC=local";
+    $dn = "CN=$pseudo,CN=Joueurs,DC=openarena,DC=local";
 
     $user = [
         "cn" => $pseudo,

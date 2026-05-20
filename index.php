@@ -463,12 +463,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 (int)($_POST['adminJoueurs'] ?? 0),
                 (int)($_POST['adminTemps'] ?? 0),
                 (int)($_POST['adminKills'] ?? 0),
+                trim($_POST['joueur1'] ?? ''),
+                trim($_POST['joueur2'] ?? '')
             ]);
             $adminMap = trim($_POST['adminMap'] ?? '');
             $adminMode = trim($_POST['adminMode'] ?? '');
             $adminJoueurs = trim($_POST['adminJoueurs'] ?? '');
             $adminTemps = trim($_POST['adminTemps'] ?? '5');
             $adminKills = trim($_POST['adminKills'] ?? '5');
+            $fp = trim($_POST['adminKills'] ?? '');
+            $sp = trim($_POST['adminKills'] ?? '');
 
             $ch = curl_init('http://192.168.1.5:8000/start');
             curl_setopt($ch, CURLOPT_POST, 1);
@@ -477,7 +481,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'adminMode' => $adminMode,
                 'adminTemps' => $adminTemps,
                 'adminKills' => $adminKills,
-                'adminJoueurs' => $adminJoueurs
+                'adminJoueurs' => $adminJoueurs,
+                'fp' => $fp,
+                'sp' => $sp
             ]));
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             $response = curl_exec($ch);
