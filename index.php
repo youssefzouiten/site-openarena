@@ -469,8 +469,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $adminJoueurs = trim($_POST['adminJoueurs'] ?? '');
             $adminTemps = trim($_POST['adminTemps'] ?? '5');
             $adminKills = trim($_POST['adminKills'] ?? '5');
-            $fp = trim($_POST['adminKills'] ?? '');
-            $sp = trim($_POST['adminKills'] ?? '');
+            $fp = trim($_POST['joueur1'] ?? '');
+            $sp = trim($_POST['joueur2'] ?? '');
 
             $ch = curl_init('http://192.168.1.5:8000/start');
             curl_setopt($ch, CURLOPT_POST, 1);
