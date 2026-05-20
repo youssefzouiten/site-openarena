@@ -825,6 +825,24 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
             <div class="form-group">
                 <label>Kills max</label><input type="number" name="adminKills" value="30" min="1" max="100">
             </div>
+            <div class="form-row">
+            <label>Joueurs du tournoi</label>
+            <?php 
+            $stmt = $pdo->query("SELECT pseudo FROM joueurs WHERE role != 'admin' ORDER BY pseudo");
+            $allPlayers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            for($i=1; $i<=2; $i++): 
+            ?>
+            <div class="form-group">
+                <label>Joueur <?= $i ?></label>
+                <select name="joueur<?= $i ?>" required>
+                    <option value="">-- Sélectionner un joueur --</option>
+                    <?php foreach($allPlayers as $p): ?>
+                    <option value="<?= e($p['pseudo']) ?>"><?= e($p['pseudo']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <?php endfor; ?>
+        </div>
             <button class="btn-primary full">Lancer la partie</button>
         </form>
         <!-- ====================== GESTION TOURNOI ====================== -->
