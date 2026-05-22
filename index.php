@@ -472,7 +472,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $fp = trim($_POST['joueur1'] ?? '1');
             $sp = trim($_POST['joueur2'] ?? '2');
 
-            $ch = curl_init('http://192.168.1.5:8000/start');
+            $ch = curl_init('http://192.168.1.6:8000/start');
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
                 'adminMap' => $adminMap,
@@ -510,7 +510,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($action === 'delete_partie') {
             if (!isAdmin()) throw new Exception('Action réservée à l’admin.');
-            $ch = curl_init('http://192.168.1.5:8000/stop');
+            $ch = curl_init('http://192.168.1.6:8000/stop');
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             $response = curl_exec($ch);
