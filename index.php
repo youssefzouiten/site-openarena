@@ -141,30 +141,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
-            // Remise à zéro des scores
-            $pdo->exec("UPDATE joueurs SET score = 0, kills = 0, deaths = 0, matchs = 0 WHERE role != 'admin'");
+            
 
-            // Création du tournoi
-            $stmt = $pdo->prepare("INSERT INTO tournois (nom) VALUES (?)");
-            $stmt->execute(['Championnat Inter-Villes']);
-            $tournoi_id = $pdo->lastInsertId();
+            $ch = curl_init('http://192.168.1.6:8000/');
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            $response = curl_exec($ch);
+            curl_close($ch);
 
-            // Création des matchs
-            $match_number = 1;
-            for ($i = 0; $i < 8; $i += 2) {
-                $stmt = $pdo->prepare("INSERT INTO tournoi_matches 
-                    (tournoi_id, round, match_number, player1, player2, statut) 
-                    VALUES (?, 1, ?, ?, ?, 'pending')");
-                $stmt->execute([
-                    $tournoi_id, 
-                    $match_number++,
-                    $selected[$i],
-                    $selected[$i+1]
-                ]);
+            if (isset($result['status']) && $result['status'] === 'success'){
+                // Remise à zéro des scores
+                $pdo->exec("UPDATE joueurs SET score = 0, kills = 0, deaths = 0, matchs = 0 WHERE role != 'admin'");
+
+                // Création du tournoi
+                $stmt = $pdo->prepare("INSERT INTO tournois (nom) VALUES (?)");
+                $stmt->execute(['Championnat Inter-Villes']);
+                $tournoi_id = $pdo->lastInsertId();
+
+                // Création des matchs
+                $match_number = 1;
+                for ($i = 0; $i < 8; $i += 2) {
+                    $stmt = $pdo->prepare("INSERT INTO tournoi_matches 
+                        (tournoi_id, round, match_number, player1, player2, statut) 
+                        VALUES (?, 1, ?, ?, ?, 'pending')");
+                    $stmt->execute([
+                        $tournoi_id, 
+                        $match_number++,
+                        $selected[$i],
+                        $selected[$i+1]
+                    ]);
+                }
+                flash('success', 'Tournoi créé avec succès avec 8 joueurs uniques !');
+                redirectTo('admin');
+            }
+            else {
+                flash('error', 'Tournoi non créé !');
+                redirectTo('admin');
             }
 
-            flash('success', 'Tournoi créé avec succès avec 8 joueurs uniques !');
-            redirectTo('admin');
+
+
+            
         }
 
         // ==================== TERMINER TOURNOI ====================
@@ -472,7 +489,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $fp = trim($_POST['joueur1'] ?? '1');
             $sp = trim($_POST['joueur2'] ?? '2');
 
-            $ch = curl_init('http://192.168.1.6:8000/start');
+            $ch = curl_init('http://192.168.1.5:8000/start');
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
                 'adminMap' => $adminMap,
@@ -510,7 +527,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($action === 'delete_partie') {
             if (!isAdmin()) throw new Exception('Action réservée à l’admin.');
-            $ch = curl_init('http://192.168.1.6:8000/stop');
+            $ch = curl_init('http://192.168.1.5:8000/stop');
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             $response = curl_exec($ch);
