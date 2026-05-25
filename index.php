@@ -581,6 +581,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!isAdmin()) throw new Exception('Action réservée à l’admin.');
             $pseudo = trim($_POST['pseudo'] ?? '');
             if (currentUser() && $pseudo === $_SESSION['user']['pseudo']) throw new Exception('Impossible de te supprimer toi-même.');
+            
+            //verification dans l'active directory
+            if(!ad_delete_user($pseudo)){
+                throw new Exception("Impossible de supprimer le joueur dans l'Active Directory");
+            } 
             $stmt = $pdo->prepare("DELETE FROM joueurs WHERE pseudo = ?");
             $stmt->execute([$pseudo]);
             flash('success', 'Joueur supprimé.');

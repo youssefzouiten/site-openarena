@@ -79,4 +79,26 @@ function ad_create_user($pseudo, $email) {
     return $add;
 }
 
+function ad_delete_user($pseudo) {
+    $adminUser = "Administrator@openarena.local";
+    $adminPass = "Group4_";
+
+    $ldap = ldap_connect("ldap://192.168.1.200");
+
+    ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
+    ldap_set_option($ldap, LDAP_OPT_REFERRALS, 0);
+
+    $bind = @ldap_bind($ldap, $adminUser, $adminPass);
+    if (!$bind) {
+        return false;
+    }
+
+    $dn = "CN=$pseudo,OU=Joueurs,DC=openarena,DC=local";
+
+    // suppression
+    $delete = ldap_delete($ldap, $dn);
+    ldap_close($ldap);
+    return $delete;
+}
+
 ?>
