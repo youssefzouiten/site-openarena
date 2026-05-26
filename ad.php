@@ -1,98 +1,162 @@
 <?php
 
-function ad_connect_admin() {
+function ad_connect($user = null, $password = null) {
 
-    $ldap = ldap_connect("ldaps://192.168.50.30");
+    $ldap = ldap_connect("ldaps://WIN-0BDJN902Q6O.openarena.local:636");
+
+    if (!$ldap) {
+        die("Connexion LDAP impossible");
+    }
 
     ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
     ldap_set_option($ldap, LDAP_OPT_REFERRALS, 0);
 
-    if (!$ldap) {
-        return false;
+    if ($user !== null && $password !== null) {
+
+        if (!@ldap_bind($ldap, $user, $password)) {
+
+            echo "LDAP BIND ERROR : " . ldap_error($ldap);
+
+            ldap_close($ldap);
+
+            return false;
+        }
     }
-
-    $adminUser = "Administrator@openarena.local";
-    $adminPass = "Group4_";
-
-  if (!ldap_bind($ldap, $adminUser, $adminPass)) {
-    die("Erreur bind admin : " . ldap_error($ldap));
-}
 
     return $ldap;
 }
 
 function ad_login($pseudo, $password) {
 
-    $ldap = ldap_connect("ldaps://192.168.50.30");
-
-    ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
-    ldap_set_option($ldap, LDAP_OPT_REFERRALS, 0);
-
     $login1 = $pseudo . "@openarena.local";
     $login2 = "OPENARENA\\" . $pseudo;
 
-    if (@ldap_bind($ldap, $login1, $password)) {
+    /*
+    echo "<pre>";
+    echo "TEST LOGIN 1 : $login1\n";
+    */
+
+    $ldap = ad_connect($login1, $password);
+
+    if ($ldap) {
+
+        /*
+        echo "LOGIN 1 OK";
+        */
+
         ldap_close($ldap);
+
         return true;
     }
 
-    if (@ldap_bind($ldap, $login2, $password)) {
+    /*
+    echo "LOGIN 1 FAILED\n";
+    echo "TEST LOGIN 2 : $login2\n";
+    */
+
+    $ldap = ad_connect($login2, $password);
+
+    if ($ldap) {
+
+        /*
+        echo "LOGIN 2 OK";
+        */
+
         ldap_close($ldap);
+
         return true;
     }
 
-    ldap_close($ldap);
+    /*
+    echo "LOGIN 2 FAILED\n";
+    */
+
     return false;
 }
 
 function ad_create_user($pseudo, $email, $password) {
 
-    $ldap = ad_connect_admin();
+    $adminUser = "Administrator@openarena.local";
+    $adminPass = "Group4_";
+
+    $ldap = ad_connect($adminUser, $adminPass);
 
     if (!$ldap) {
         return false;
     }
 
-    $dn = "CN=$pseudo,CN=Users,DC=openarena,DC=local";
+    // Sécurise le pseudo dans le DN
+    $pseudoSafe = ldap_escape($pseudo, "", LDAP_ESCAPE_DN);
+
+    $dn = "CN=$pseudoSafe,OU=Joueurs,DC=openarena,DC=local";
 
     $user = [
+
         "cn" => $pseudo,
         "sn" => $pseudo,
         "givenName" => $pseudo,
         "displayName" => $pseudo,
+
         "sAMAccountName" => $pseudo,
+
         "userPrincipalName" => $pseudo . "@openarena.local",
+
         "mail" => $email,
+
         "objectClass" => [
             "top",
             "person",
             "organizationalPerson",
             "user"
         ],
-        "userAccountControl" => "514"
+
+        // Compte désactivé temporairement
+        "userAccountControl" => ["514"]
     ];
 
-  if (!ldap_add($ldap, $dn, $user)) {
-    die("Erreur ldap_add : " . ldap_error($ldap));
-}
+    // Création utilisateur
+    $add = @ldap_add($ldap, $dn, $user);
 
-    $quotedPassword = '"' . $password . '"';
+    if (!$add) {
 
-    $unicodePassword = mb_convert_encoding(
-        $quotedPassword,
-        "UTF-16LE"
+        echo "LDAP ADD ERROR : " . ldap_error($ldap);
+
+        ldap_close($ldap);
+
+        return false;
+    }
+
+    // Mot de passe AD
+    $pwd = mb_convert_encoding(
+        '"' . $password . '"',
+        'UTF-16LE'
     );
 
-   if (!ldap_mod_replace($ldap, $dn, [
-    "unicodePwd" => $unicodePassword
-])) {
-    die("Erreur mot de passe AD : " . ldap_error($ldap));
-}
+    // Définition du mot de passe
+    $passSet = @ldap_mod_replace($ldap, $dn, [
+        "unicodePwd" => [$pwd]
+    ]);
 
-    if (!@ldap_mod_replace($ldap, $dn, [
-        "userAccountControl" => "512"
-    ])) {
+    if (!$passSet) {
+
+        echo "PASSWORD ERROR : " . ldap_error($ldap);
+
         ldap_close($ldap);
+
+        return false;
+    }
+
+    // Activation du compte
+    $enable = @ldap_mod_replace($ldap, $dn, [
+        "userAccountControl" => ["512"]
+    ]);
+
+    if (!$enable) {
+
+        echo "ENABLE ACCOUNT ERROR : " . ldap_error($ldap);
+
+        ldap_close($ldap);
+
         return false;
     }
 
