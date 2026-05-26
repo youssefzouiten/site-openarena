@@ -230,8 +230,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($password !== $password2) {
-        throw new Exception('Les mots de passe ne correspondent pas.');
-    }
+    throw new Exception('Les mots de passe ne correspondent pas.');
+}
+
+// Politique mot de passe
+if (strlen($password) < 8) {
+    throw new Exception('Le mot de passe doit contenir au moins 8 caractères.');
+}
+
+if (!preg_match('/[A-Z]/', $password)) {
+    throw new Exception('Le mot de passe doit contenir une majuscule.');
+}
+
+if (!preg_match('/[a-z]/', $password)) {
+    throw new Exception('Le mot de passe doit contenir une minuscule.');
+}
+
+if (!preg_match('/[0-9]/', $password)) {
+    throw new Exception('Le mot de passe doit contenir un chiffre.');
+}
+
+if (!preg_match('/[\W]/', $password)) {
+    throw new Exception('Le mot de passe doit contenir un caractère spécial.');
+}
 
     if (!preg_match('/^[a-zA-Z0-9_]{3,30}$/', $pseudo)) {
         throw new Exception('Pseudo invalide.');
