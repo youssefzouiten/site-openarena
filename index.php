@@ -844,9 +844,7 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
                 <div class="form-group">
                     <label>Joueurs max</label><input type="number" name="adminJoueurs" value="16" min="2" max="32">
                 </div>
-                <div class="form-group">
-                    <label>Temps</label><input type="number" name="adminTemps" value="15" min="1" max="60">
-                </div>
+                
             </div>
             <div class="form-group">
                 <label>Kills max</label><input type="number" name="adminKills" value="30" min="1" max="100">
