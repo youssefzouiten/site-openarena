@@ -14,9 +14,9 @@ function ad_connect_admin() {
     $adminUser = "Administrator@openarena.local";
     $adminPass = "Group4_";
 
-    if (!@ldap_bind($ldap, $adminUser, $adminPass)) {
-        return false;
-    }
+  if (!ldap_bind($ldap, $adminUser, $adminPass)) {
+    die("Erreur bind admin : " . ldap_error($ldap));
+}
 
     return $ldap;
 }
@@ -72,10 +72,9 @@ function ad_create_user($pseudo, $email, $password) {
         "userAccountControl" => "514"
     ];
 
-    if (!@ldap_add($ldap, $dn, $user)) {
-        ldap_close($ldap);
-        return false;
-    }
+  if (!ldap_add($ldap, $dn, $user)) {
+    die("Erreur ldap_add : " . ldap_error($ldap));
+}
 
     $quotedPassword = '"' . $password . '"';
 
@@ -84,12 +83,11 @@ function ad_create_user($pseudo, $email, $password) {
         "UTF-16LE"
     );
 
-    if (!@ldap_mod_replace($ldap, $dn, [
-        "unicodePwd" => $unicodePassword
-    ])) {
-        ldap_close($ldap);
-        return false;
-    }
+   if (!ldap_mod_replace($ldap, $dn, [
+    "unicodePwd" => $unicodePassword
+])) {
+    die("Erreur mot de passe AD : " . ldap_error($ldap));
+}
 
     if (!@ldap_mod_replace($ldap, $dn, [
         "userAccountControl" => "512"
