@@ -2,7 +2,7 @@
 
 function ad_connect_admin() {
 
-    $ldap = ldap_connect("ldaps://192.168.50.30:636");
+    $ldap = ldap_connect("ldaps://WIN-0BDJN902Q6O.openarena.local:636"");
 
     ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
     ldap_set_option($ldap, LDAP_OPT_REFERRALS, 0);
