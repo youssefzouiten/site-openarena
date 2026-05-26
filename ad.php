@@ -15,8 +15,6 @@ function ad_connect($user = null, $password = null) {
 
         if (!@ldap_bind($ldap, $user, $password)) {
 
-            echo "LDAP BIND ERROR : " . ldap_error($ldap);
-
             ldap_close($ldap);
 
             return false;
@@ -26,55 +24,77 @@ function ad_connect($user = null, $password = null) {
     return $ldap;
 }
 
+function password_valid($password) {
+
+    // Minimum 8 caractères
+    if (strlen($password) < 8) {
+        return "Le mot de passe doit contenir au moins 8 caractères";
+    }
+
+    // Au moins une majuscule
+    if (!preg_match('/[A-Z]/', $password)) {
+        return "Le mot de passe doit contenir au moins une majuscule";
+    }
+
+    // Au moins une minuscule
+    if (!preg_match('/[a-z]/', $password)) {
+        return "Le mot de passe doit contenir au moins une minuscule";
+    }
+
+    // Au moins un chiffre
+    if (!preg_match('/[0-9]/', $password)) {
+        return "Le mot de passe doit contenir au moins un chiffre";
+    }
+
+    // Au moins un caractère spécial
+    if (!preg_match('/[\W]/', $password)) {
+        return "Le mot de passe doit contenir au moins un caractère spécial";
+    }
+
+    return true;
+}
+
 function ad_login($pseudo, $password) {
 
     $login1 = $pseudo . "@openarena.local";
     $login2 = "OPENARENA\\" . $pseudo;
 
-    /*
-    echo "<pre>";
-    echo "TEST LOGIN 1 : $login1\n";
-    */
-
     $ldap = ad_connect($login1, $password);
 
     if ($ldap) {
-
-        /*
-        echo "LOGIN 1 OK";
-        */
 
         ldap_close($ldap);
 
         return true;
     }
-
-    /*
-    echo "LOGIN 1 FAILED\n";
-    echo "TEST LOGIN 2 : $login2\n";
-    */
 
     $ldap = ad_connect($login2, $password);
 
     if ($ldap) {
 
-        /*
-        echo "LOGIN 2 OK";
-        */
-
         ldap_close($ldap);
 
         return true;
     }
 
-    /*
-    echo "LOGIN 2 FAILED\n";
-    */
-
     return false;
 }
 
-function ad_create_user($pseudo, $email, $password) {
+function ad_create_user($pseudo, $email, $password, $password2) {
+
+    // Vérification confirmation mot de passe
+    if ($password !== $password2) {
+
+        return "Les mots de passe ne correspondent pas";
+    }
+
+    // Vérification politique mot de passe
+    $check = password_valid($password);
+
+    if ($check !== true) {
+
+        return $check;
+    }
 
     $adminUser = "Administrator@openarena.local";
     $adminPass = "Group4_";
@@ -82,10 +102,11 @@ function ad_create_user($pseudo, $email, $password) {
     $ldap = ad_connect($adminUser, $adminPass);
 
     if (!$ldap) {
-        return false;
+
+        return "Erreur connexion LDAP";
     }
 
-    // Sécurise le pseudo dans le DN
+    // Sécurise le pseudo LDAP
     $pseudoSafe = ldap_escape($pseudo, "", LDAP_ESCAPE_DN);
 
     $dn = "CN=$pseudoSafe,OU=Joueurs,DC=openarena,DC=local";
@@ -119,45 +140,48 @@ function ad_create_user($pseudo, $email, $password) {
 
     if (!$add) {
 
-        echo "LDAP ADD ERROR : " . ldap_error($ldap);
+        $error = ldap_error($ldap);
 
         ldap_close($ldap);
 
-        return false;
+        return "Erreur création utilisateur : " . $error;
     }
 
-    // Mot de passe AD
+    // Encodage mot de passe AD
     $pwd = mb_convert_encoding(
         '"' . $password . '"',
         'UTF-16LE'
     );
 
-    // Définition du mot de passe
+    // Définition mot de passe
     $passSet = @ldap_mod_replace($ldap, $dn, [
         "unicodePwd" => [$pwd]
     ]);
 
     if (!$passSet) {
 
-        echo "PASSWORD ERROR : " . ldap_error($ldap);
+        $error = ldap_error($ldap);
+
+        // Supprime le compte si le mot de passe échoue
+        @ldap_delete($ldap, $dn);
 
         ldap_close($ldap);
 
-        return false;
+        return "Le mot de passe ne respecte pas la politique de sécurité";
     }
 
-    // Activation du compte
+    // Active le compte
     $enable = @ldap_mod_replace($ldap, $dn, [
         "userAccountControl" => ["512"]
     ]);
 
     if (!$enable) {
 
-        echo "ENABLE ACCOUNT ERROR : " . ldap_error($ldap);
+        $error = ldap_error($ldap);
 
         ldap_close($ldap);
 
-        return false;
+        return "Erreur activation compte : " . $error;
     }
 
     ldap_close($ldap);
