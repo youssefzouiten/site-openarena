@@ -1,8 +1,29 @@
 <?php
 
+function ad_connect_admin() {
+
+    $ldap = ldap_connect("ldaps://192.168.50.30");
+
+    ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
+    ldap_set_option($ldap, LDAP_OPT_REFERRALS, 0);
+
+    if (!$ldap) {
+        return false;
+    }
+
+    $adminUser = "Administrator@openarena.local";
+    $adminPass = "Group4_";
+
+    if (!@ldap_bind($ldap, $adminUser, $adminPass)) {
+        return false;
+    }
+
+    return $ldap;
+}
+
 function ad_login($pseudo, $password) {
 
-    $ldap = ldap_connect("ldaps://192.168.1.200");
+    $ldap = ldap_connect("ldaps://192.168.50.30");
 
     ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
     ldap_set_option($ldap, LDAP_OPT_REFERRALS, 0);
@@ -10,50 +31,29 @@ function ad_login($pseudo, $password) {
     $login1 = $pseudo . "@openarena.local";
     $login2 = "OPENARENA\\" . $pseudo;
 
-    echo "<pre>";
-    echo "TEST LOGIN 1 : $login1\n";
-
-    if (ldap_bind($ldap, $login1, $password)) {
-        echo "LOGIN 1 OK";
+    if (@ldap_bind($ldap, $login1, $password)) {
         ldap_close($ldap);
         return true;
     }
-
-    echo "LOGIN 1 FAILED\n";
-    echo "TEST LOGIN 2 : $login2\n";
 
     if (@ldap_bind($ldap, $login2, $password)) {
-        echo "LOGIN 2 OK";
         ldap_close($ldap);
         return true;
     }
 
-    echo "LOGIN 2 FAILED\n";
-
-    echo "LDAP ERROR : " . ldap_error($ldap);
-
     ldap_close($ldap);
-
     return false;
 }
 
-function ad_create_user($pseudo, $email) {
+function ad_create_user($pseudo, $email, $password) {
 
-    $adminUser = "Administrator@openarena.local";
-    $adminPass = "Group4_";
+    $ldap = ad_connect_admin();
 
-    $ldap = ldap_connect("ldap://192.168.1.200");
-
-    ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
-    ldap_set_option($ldap, LDAP_OPT_REFERRALS, 0);
-
-    $bind = @ldap_bind($ldap, $adminUser, $adminPass);
-
-    if (!$bind) {
+    if (!$ldap) {
         return false;
     }
 
-    $dn = "CN=$pseudo,OU=Joueurs,DC=openarena,DC=local";
+    $dn = "CN=$pseudo,CN=Users,DC=openarena,DC=local";
 
     $user = [
         "cn" => $pseudo,
@@ -61,7 +61,7 @@ function ad_create_user($pseudo, $email) {
         "givenName" => $pseudo,
         "displayName" => $pseudo,
         "sAMAccountName" => $pseudo,
-        "userPrincipalName" => $email,
+        "userPrincipalName" => $pseudo . "@openarena.local",
         "mail" => $email,
         "objectClass" => [
             "top",
@@ -69,36 +69,38 @@ function ad_create_user($pseudo, $email) {
             "organizationalPerson",
             "user"
         ],
-        "userAccountControl" => "544"
+        "userAccountControl" => "514"
     ];
 
-    $add = ldap_add($ldap, $dn, $user);
-
-    ldap_close($ldap);
-
-    return $add;
-}
-
-function ad_delete_user($pseudo) {
-    $adminUser = "Administrator@openarena.local";
-    $adminPass = "Group4_";
-
-    $ldap = ldap_connect("ldap://192.168.1.200");
-
-    ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
-    ldap_set_option($ldap, LDAP_OPT_REFERRALS, 0);
-
-    $bind = @ldap_bind($ldap, $adminUser, $adminPass);
-    if (!$bind) {
+    if (!@ldap_add($ldap, $dn, $user)) {
+        ldap_close($ldap);
         return false;
     }
 
-    $dn = "CN=$pseudo,OU=Joueurs,DC=openarena,DC=local";
+    $quotedPassword = '"' . $password . '"';
 
-    // suppression
-    $delete = ldap_delete($ldap, $dn);
+    $unicodePassword = mb_convert_encoding(
+        $quotedPassword,
+        "UTF-16LE"
+    );
+
+    if (!@ldap_mod_replace($ldap, $dn, [
+        "unicodePwd" => $unicodePassword
+    ])) {
+        ldap_close($ldap);
+        return false;
+    }
+
+    if (!@ldap_mod_replace($ldap, $dn, [
+        "userAccountControl" => "512"
+    ])) {
+        ldap_close($ldap);
+        return false;
+    }
+
     ldap_close($ldap);
-    return $delete;
+
+    return true;
 }
 
 ?>
