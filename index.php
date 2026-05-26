@@ -1000,6 +1000,6 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
 
 </main>
 
-<footer><p>🎮 OpenArena Championship — Version PHP sans JavaScript</p></footer>
+<footer><p>🎮 OpenArena Championship </p></footer>
 </body>
 </html>
