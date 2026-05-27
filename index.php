@@ -219,7 +219,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'register') {
     $pseudo = trim($_POST['pseudo'] ?? '');
-    $email = trim($_POST['email'] ?? '');
+    $nd = trim($_POST['email'] ?? '');
+    $email = $nd."@games-marseille.fr";
     $password = $_POST['password'] ?? '';
     $password2 = $_POST['password_confirm'] ?? '';
     $ville = trim($_POST['ville'] ?? 'Marseille');
