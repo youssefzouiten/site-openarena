@@ -219,8 +219,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'register') {
     $pseudo = trim($_POST['pseudo'] ?? '');
-    $nd = trim($_POST['email'] ?? '');
-    $email = $nd."@games-marseille.fr";
+    $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
     $password2 = $_POST['password_confirm'] ?? '';
     $ville = trim($_POST['ville'] ?? 'Marseille');
@@ -231,29 +230,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($password !== $password2) {
-    throw new Exception('Les mots de passe ne correspondent pas.');
-}
-
-// Politique mot de passe
-if (strlen($password) < 8) {
-    throw new Exception('Le mot de passe doit contenir au moins 8 caractères.');
-}
-
-if (!preg_match('/[A-Z]/', $password)) {
-    throw new Exception('Le mot de passe doit contenir une majuscule.');
-}
-
-if (!preg_match('/[a-z]/', $password)) {
-    throw new Exception('Le mot de passe doit contenir une minuscule.');
-}
-
-if (!preg_match('/[0-9]/', $password)) {
-    throw new Exception('Le mot de passe doit contenir un chiffre.');
-}
-
-if (!preg_match('/[\W]/', $password)) {
-    throw new Exception('Le mot de passe doit contenir un caractère spécial.');
-}
+        throw new Exception('Les mots de passe ne correspondent pas.');
+    }
 
     if (!preg_match('/^[a-zA-Z0-9_]{3,30}$/', $pseudo)) {
         throw new Exception('Pseudo invalide.');
@@ -271,7 +249,7 @@ if (!preg_match('/[\W]/', $password)) {
     }
 
     // 1) Créer le joueur dans Active Directory
-    if (!ad_create_user($pseudo, $email, $password, $password2)) {
+    if (!ad_create_user($pseudo, $email, $password)) {
         throw new Exception("Erreur : impossible de créer l'utilisateur dans Active Directory.");
     }
 
@@ -727,14 +705,7 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
         <form method="post">
             <input type="hidden" name="action" value="register">
             <div class="form-group"><label>Pseudo</label><input name="pseudo" required minlength="3" maxlength="30" pattern="[a-zA-Z0-9_]+"></div>
-            <div class="form-row">
-                <div class="form-group">
-                <label>Email</label><input name="email" required>
-                </div>
-                <div class="form-group">
-                    <span>@games-marseille.fr</span>
-                </div>
-            </div>
+            <div class="form-group"><label>email</label><input type="email" name="email" required></div>
             <div class="form-group"><label>Mot de passe</label><input type="password" name="password" required minlength="6"></div>
             <div class="form-group"><label>Confirmer</label><input type="password" name="password_confirm" required minlength="6"></div>
             <div class="form-group"><label>Ville</label><select name="ville"><?php foreach($villes as $v): ?><option value="<?= e($v) ?>"><?= e($v) ?></option><?php endforeach; ?></select></div>
