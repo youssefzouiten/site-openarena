@@ -249,7 +249,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // 1) Créer le joueur dans Active Directory
-    if (!ad_create_user($pseudo, $email, $password)) {
+    if (!ad_create_user($pseudo, $email, $password, $password2)) {
         throw new Exception("Erreur : impossible de créer l'utilisateur dans Active Directory.");
     }
 
