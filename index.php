@@ -705,7 +705,7 @@ $maps = ['oa_dm3' => 'oa_dm3 — Duels', 'am_lavactf' => 'am_lavactf — CTF ave
         <form method="post">
             <input type="hidden" name="action" value="register">
             <div class="form-group"><label>Pseudo</label><input name="pseudo" required minlength="3" maxlength="30" pattern="[a-zA-Z0-9_]+"></div>
-            <div class="form-group"><label>email</label><input type="email" name="email" required></div>
+            <div class="form-group"><label>Email</label><input type="email" name="email" required></div>
             <div class="form-group"><label>Mot de passe</label><input type="password" name="password" required minlength="6"></div>
             <div class="form-group"><label>Confirmer</label><input type="password" name="password_confirm" required minlength="6"></div>
             <div class="form-group"><label>Ville</label><select name="ville"><?php foreach($villes as $v): ?><option value="<?= e($v) ?>"><?= e($v) ?></option><?php endforeach; ?></select></div>
