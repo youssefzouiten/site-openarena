@@ -141,15 +141,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
-            
-
-            $ch = curl_init('http://192.168.1.6:8000/');
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            $response = curl_exec($ch);
-            curl_close($ch);
-
-            if (isset($result['status']) && $result['status'] === 'success'){
                 // Remise à zéro des scores
                 $pdo->exec("UPDATE joueurs SET score = 0, kills = 0, deaths = 0, matchs = 0 WHERE role != 'admin'");
 
@@ -173,11 +164,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 flash('success', 'Tournoi créé avec succès avec 8 joueurs uniques !');
                 redirectTo('admin');
-            }
-            else {
-                flash('error', 'Tournoi non créé !');
-                redirectTo('admin');
-            }
 
 
 
